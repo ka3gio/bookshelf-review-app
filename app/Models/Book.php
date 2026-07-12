@@ -26,7 +26,8 @@ class Book extends Model
 
     public function genres()
     {
-        return $this->belongsToMany(Genre::class);
+        return $this->belongsToMany(Genre::class)
+            ->withTimestamps();
     }
 
     public function reviews()
@@ -36,6 +37,7 @@ class Book extends Model
 
     public function favorites()
     {
-        return $this->belongsToMany(User::class, 'favorites');
+        return $this->belongsToMany(User::class, 'favorites')
+            ->withTimestamps();
     }
 }
