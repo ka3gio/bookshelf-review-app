@@ -9,16 +9,24 @@ use Illuminate\Database\Seeder;
 
 class ReviewSeeder extends Seeder
 {
+    private const REVIEW_COUNT_PATTERNS = [
+        [2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+        [2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4],
+        [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4],
+        [2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4],
+        [2, 2, 2, 2, 2, 3, 3, 4, 4, 4, 4],
+        [2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4],
+    ];
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
         $userIds = User::pluck('id');
-        $reviewCounts = array_combine(
-            Book::pluck('id')->all(),
-            collect([2, 2, 2, 2, 2, 3, 3, 4, 4, 4, 4])->shuffle()->all()
-        );
+        $reviewCounts = collect(self::REVIEW_COUNT_PATTERNS)->random();
+        shuffle($reviewCounts);
+        $reviewCounts = array_combine(Book::pluck('id')->all(), $reviewCounts);
 
         foreach ($reviewCounts as $bookId => $reviewCount) {
             $reviewUsers = $userIds->shuffle()->take($reviewCount);
