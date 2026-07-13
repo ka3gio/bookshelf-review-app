@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\FavoriteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,10 +31,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
     Route::resource('reviews', ReviewController::class)->only(['edit', 'update', 'destroy']);
-    Route::post('reviews/like', [ReviewController::class, 'like'])->name('reviews.like');
+    Route::post('reviews/{review}/like', [ReviewController::class, 'like'])->name('reviews.like');
 
     Route::get('/favorite', [FavoriteController::class, 'index'])->name('favorites.index');
-    Route::post('/favorite.toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
     Route::resource('genres', GenreController::class);
 });

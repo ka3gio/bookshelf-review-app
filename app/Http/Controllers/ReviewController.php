@@ -84,4 +84,17 @@ class ReviewController extends Controller
 
         return redirect()->route('books.show', $review->book_id)->with('success', 'レビューを削除しました');
     }
+
+    public function like(Review $review, Request $request)
+    {
+        if ($review->likedByUsers()->where('user_id', auth()->id())->exists()) {
+            // すでにいいねしている場合は削除
+            $review->likedByUsers()->detach(auth()->id());
+            return back()->with('success', 'いいねを取り消しました');
+        } else {
+            // いいねしていない場合は追加
+            $review->likedByUsers()->attach(auth()->id());
+            return back()->with('success', 'いいねしました');
+        }
+    }
 }
