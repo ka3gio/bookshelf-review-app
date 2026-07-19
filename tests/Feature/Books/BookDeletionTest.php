@@ -18,6 +18,7 @@ class BookDeletionTest extends BookTestCase
         $review = Review::factory()->create(['book_id' => $book->id]);
         $book->genres()->attach($genre);
         $favoriteUser->favoriteBooks()->attach($book);
+        $review->likedByUsers()->attach($favoriteUser);
 
         $response = $this->actingAs($owner)->delete(route('books.destroy', $book));
 
@@ -26,5 +27,6 @@ class BookDeletionTest extends BookTestCase
         $this->assertDatabaseMissing('book_genre', ['book_id' => $book->id]);
         $this->assertDatabaseMissing('favorites', ['book_id' => $book->id]);
         $this->assertDatabaseMissing('reviews', ['id' => $review->id]);
+        $this->assertDatabaseMissing('review_likes', ['review_id' => $review->id]);
     }
 }

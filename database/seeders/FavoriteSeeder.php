@@ -17,7 +17,7 @@ class FavoriteSeeder extends Seeder
         $users = User::all();
 
         foreach ($users as $user) {
-            $user->favorites()->syncWithoutDetaching(
+            $user->favoriteBooks()->syncWithoutDetaching(
                 $bookIds->shuffle()->take(rand(3, 5))->toArray()
             );
         }

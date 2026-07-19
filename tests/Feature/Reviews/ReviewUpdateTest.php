@@ -35,6 +35,25 @@ class ReviewUpdateTest extends ReviewTestCase
         ]);
     }
 
+    public function test_review_owner_can_view_the_edit_page(): void
+    {
+        $owner = User::factory()->create();
+        $review = Review::factory()->create(['user_id' => $owner->id]);
+
+        $this->actingAs($owner)
+            ->get(route('reviews.edit', $review))
+            ->assertOk();
+    }
+
+    public function test_non_owner_cannot_view_the_review_edit_page(): void
+    {
+        $review = Review::factory()->create();
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('reviews.edit', $review))
+            ->assertForbidden();
+    }
+
     public function test_non_owner_cannot_update_a_review(): void
     {
         $review = Review::factory()->create();

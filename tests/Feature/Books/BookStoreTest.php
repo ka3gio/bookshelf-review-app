@@ -8,6 +8,22 @@ use App\Models\User;
 
 class BookStoreTest extends BookTestCase
 {
+    public function test_guest_is_redirected_to_login_when_viewing_or_storing_a_book(): void
+    {
+        $this->get(route('books.create'))
+            ->assertRedirect(route('login'));
+
+        $this->post(route('books.store'), $this->bookData([]))
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_authenticated_user_can_view_book_create_page(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('books.create'))
+            ->assertOk();
+    }
+
     public function test_authenticated_user_can_create_a_book_with_genres(): void
     {
         $user = User::factory()->create();

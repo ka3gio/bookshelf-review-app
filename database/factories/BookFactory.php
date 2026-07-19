@@ -19,11 +19,17 @@ class BookFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'title' => fake()->sentence(),
+            'title' => fake()->realText(20),
             'author' => fake()->name(),
             'isbn' => fake()->unique()->isbn13(),
             'published_date' => fake()->date(),
-            'description' => fake()->optional()->paragraph(),
+            'description' => fake()->optional()->passthrough(
+                fake()->realText(28)
+                . PHP_EOL
+                . fake()->realText(120)
+                . PHP_EOL
+                . fake()->realText(55)
+            ),
             'image_url' => fake()->optional()->imageUrl(),
         ];
     }

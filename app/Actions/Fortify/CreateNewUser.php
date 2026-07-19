@@ -32,6 +32,7 @@ class CreateNewUser implements CreatesNewUsers
                 Rule::unique(User::class),
             ],
             'password' => $this->passwordRules(),
+            'password_confirmation' => ['required', 'same:password'],
         ], [
             'name.required' => 'お名前を入力してください',
             'email.required' => 'メールアドレスを入力してください',
@@ -39,7 +40,8 @@ class CreateNewUser implements CreatesNewUsers
             'email.email' => 'メールアドレスはメール形式で入力してください',
             'password.required' => 'パスワードを入力してください',
             'password.min' => 'パスワードは8文字以上で入力してください',
-            'password.confirmed' => 'パスワードと一致しません',
+            'password_confirmation.required' => 'パスワード(確認用)を入力してください',
+            'password_confirmation.same' => '入力したパスワードがパスワード(確認用)と一致しません',
         ])->validate();
 
         return User::create([

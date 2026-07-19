@@ -21,7 +21,11 @@ class ReviewFactory extends Factory
             'user_id' => User::factory(),
             'book_id' => Book::factory(),
             'rating' => fake()->numberBetween(1, 5),
-            'comment' => fake()->sentence(),
+            'comment' => fake()->passthrough(
+                fake()->realText(28)
+                . PHP_EOL
+                . fake()->realText(45)
+            ),
         ];
     }
 }

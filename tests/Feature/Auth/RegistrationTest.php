@@ -80,7 +80,7 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'different-password',
         ]);
 
-        $response->assertSessionHasErrors('password');
+        $response->assertSessionHasErrors('password_confirmation');
         $this->assertGuest();
     }
 }

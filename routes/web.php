@@ -21,7 +21,6 @@ use App\Http\Controllers\GenreController;
 Route::get('/', function () {
     return redirect()->route('books.index');
 });
-Route::resource('/books', BookController::class)->only(['index', 'show']);
 Route::get('/ranking', [BookController::class, 'ranking'])->name('ranking.index');
 
 Route::middleware('auth')->group(function () {
@@ -39,3 +38,5 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('genres', GenreController::class);
 });
+
+Route::resource('/books', BookController::class)->only(['index', 'show']);

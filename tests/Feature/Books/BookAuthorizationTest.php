@@ -8,6 +8,16 @@ use App\Models\User;
 
 class BookAuthorizationTest extends BookTestCase
 {
+    public function test_book_owner_can_view_the_edit_page(): void
+    {
+        $owner = User::factory()->create();
+        $book = Book::factory()->create(['user_id' => $owner->id]);
+
+        $this->actingAs($owner)
+            ->get(route('books.edit', $book))
+            ->assertOk();
+    }
+
     public function test_non_owner_cannot_edit_a_book(): void
     {
         $book = Book::factory()->create();
