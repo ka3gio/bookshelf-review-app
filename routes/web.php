@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\ReviewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,9 +27,13 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('books.index');
     });
     Route::resource('/books', BookController::class)->except(['index', 'show']);
+    Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+
+    Route::resource('reviews', ReviewController::class)->only(['edit', 'update', 'destroy']);
+    Route::post('reviews/like', [ReviewController::class, 'like'])->name('reviews.like');
+
     Route::get('/favorite', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('/favorite.toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+
     Route::resource('genres', GenreController::class);
-    Route::resource('reviews', ReviewController::class);
-    Route::post('reviews/like', [ReviewController::class, 'like'])->name('reviews.like');
 });
