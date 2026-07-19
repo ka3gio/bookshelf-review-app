@@ -42,11 +42,11 @@ class UserRelationshipTest extends TestCase
         $user = User::factory()->create();
         $books = Book::factory()->count(2)->create([]);
 
-        $user->favorites()->attach($books->modelKeys());
+        $user->favoriteBooks()->attach($books->modelKeys());
 
-        $this->assertCount(2, $user->favorites);
-        $this->assertTrue($user->favorites->contains($books->first()));
-        $this->assertTrue($user->favorites->contains($books->last()));
+        $this->assertCount(2, $user->favoriteBooks);
+        $this->assertTrue($user->favoriteBooks->contains($books->first()));
+        $this->assertTrue($user->favoriteBooks->contains($books->last()));
     }
 
     public function test_user_can_like_multiple_reviews(): void
@@ -56,10 +56,10 @@ class UserRelationshipTest extends TestCase
             'book_id' => Book::factory()->create()->id,
         ]);
 
-        $user->review_likes()->attach($reviews->modelKeys());
+        $user->likedReviews()->attach($reviews->modelKeys());
 
-        $this->assertCount(2, $user->review_likes);
-        $this->assertTrue($user->review_likes->contains($reviews->first()));
-        $this->assertTrue($user->review_likes->contains($reviews->last()));
+        $this->assertCount(2, $user->likedReviews);
+        $this->assertTrue($user->likedReviews->contains($reviews->first()));
+        $this->assertTrue($user->likedReviews->contains($reviews->last()));
     }
 }

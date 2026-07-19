@@ -1,0 +1,30 @@
+<?php
+
+namespace Tests\Feature\Books;
+
+use App\Models\Book;
+use App\Models\Genre;
+use App\Models\Review;
+use App\Models\User;
+
+class BookDeletionTest extends BookTestCase
+{
+    public function test_book_owner_can_delete_book_and_its_related_records(): void
+    {
+        $owner = User::factory()->create();
+        $favoriteUser = User::factory()->create();
+        $genre = Genre::factory()->create();
+        $book = Book::factory()->create(['user_id' => $owner->id]);
+        $review = Review::factory()->create(['book_id' => $book->id]);
+        $book->genres()->attach($genre);
+        $favoriteUser->favoriteBooks()->attach($book);
+
+        $response = $this->actingAs($owner)->delete(route('books.destroy', $book));
+
+        $response->assertRedirect(route('books.index'));
+        $this->assertDatabaseMissing('books', ['id' => $book->id]);
+        $this->assertDatabaseMissing('book_genre', ['book_id' => $book->id]);
+        $this->assertDatabaseMissing('favorites', ['book_id' => $book->id]);
+        $this->assertDatabaseMissing('reviews', ['id' => $review->id]);
+    }
+}

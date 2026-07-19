@@ -48,10 +48,10 @@ class BookRelationshipTest extends TestCase
         $book = Book::factory()->create();
         $users = User::factory()->count(2)->create();
 
-        $book->favorites()->attach($users->modelKeys());
+        $book->favoritedByUsers()->attach($users->modelKeys());
 
-        $this->assertCount(2, $book->favorites);
-        $this->assertTrue($book->favorites->contains($users->first()));
-        $this->assertTrue($book->favorites->contains($users->last()));
+        $this->assertCount(2, $book->favoritedByUsers);
+        $this->assertTrue($book->favoritedByUsers->contains($users->first()));
+        $this->assertTrue($book->favoritedByUsers->contains($users->last()));
     }
 }

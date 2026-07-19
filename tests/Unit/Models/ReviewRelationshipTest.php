@@ -38,10 +38,10 @@ class ReviewRelationshipTest extends TestCase
         ]);
         $users = User::factory()->count(2)->create();
 
-        $review->review_likes()->attach($users->modelKeys());
+        $review->likedByUsers()->attach($users->modelKeys());
 
-        $this->assertCount(2, $review->review_likes);
-        $this->assertTrue($review->review_likes->contains($users->first()));
-        $this->assertTrue($review->review_likes->contains($users->last()));
+        $this->assertCount(2, $review->likedByUsers);
+        $this->assertTrue($review->likedByUsers->contains($users->first()));
+        $this->assertTrue($review->likedByUsers->contains($users->last()));
     }
 }
