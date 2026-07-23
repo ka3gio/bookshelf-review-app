@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\Genre;
 use App\Models\Review;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,6 +20,14 @@ class BookRelationshipTest extends TestCase
         $book = Book::factory()->create(['user_id' => $user->id]);
 
         $this->assertTrue($book->user->is($user));
+    }
+
+    public function test_published_date_is_cast_to_a_date_object(): void
+    {
+        $book = Book::factory()->create(['published_date' => '2024-01-01']);
+
+        $this->assertInstanceOf(CarbonInterface::class, $book->published_date);
+        $this->assertSame('2024-01-01', $book->published_date->format('Y-m-d'));
     }
 
     public function test_book_can_belong_to_multiple_genres(): void

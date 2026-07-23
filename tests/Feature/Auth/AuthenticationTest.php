@@ -11,6 +11,13 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_guest_can_view_login_page(): void
+    {
+        $this->get('/login')
+            ->assertStatus(200)
+            ->assertViewIs('auth.login');
+    }
+
     public function test_guest_can_log_in_with_valid_credentials(): void
     {
         $user = User::factory()->create();
@@ -20,7 +27,9 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
-        $response->assertRedirect(RouteServiceProvider::HOME);
+        $response
+            ->assertStatus(302)
+            ->assertRedirect(RouteServiceProvider::HOME);
         $this->assertAuthenticatedAs($user);
     }
 
@@ -28,6 +37,7 @@ class AuthenticationTest extends TestCase
     {
         $this->actingAs(User::factory()->create())
             ->post('/logout')
+            ->assertStatus(302)
             ->assertRedirect(RouteServiceProvider::HOME);
 
         $this->assertGuest();
@@ -37,6 +47,7 @@ class AuthenticationTest extends TestCase
     {
         $this->actingAs(User::factory()->create())
             ->get('/login')
+            ->assertStatus(302)
             ->assertRedirect(RouteServiceProvider::HOME);
     }
 
@@ -44,7 +55,9 @@ class AuthenticationTest extends TestCase
     {
         $response = $this->post('/login', []);
 
-        $response->assertSessionHasErrors(['email', 'password']);
+        $response
+            ->assertStatus(302)
+            ->assertSessionHasErrors(['email', 'password']);
         $this->assertGuest();
     }
 
@@ -55,7 +68,9 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
-        $response->assertSessionHasErrors('email');
+        $response
+            ->assertStatus(302)
+            ->assertSessionHasErrors('email');
         $this->assertGuest();
     }
 
@@ -68,7 +83,9 @@ class AuthenticationTest extends TestCase
             'password' => 'incorrect-password',
         ]);
 
-        $response->assertSessionHasErrors('email');
+        $response
+            ->assertStatus(302)
+            ->assertSessionHasErrors('email');
         $this->assertGuest();
     }
 }
