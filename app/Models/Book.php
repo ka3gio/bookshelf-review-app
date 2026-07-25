@@ -44,4 +44,9 @@ class Book extends Model
         return $this->belongsToMany(User::class, 'favorites')
             ->withTimestamps();
     }
+
+    public function readingPlans()
+    {
+        return $this->hasMany(ReadingPlan::class);
+    }
 }
