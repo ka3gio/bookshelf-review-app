@@ -28,7 +28,7 @@ class UpdateBookRequest extends FormRequest
             'isbn' => [
                 'nullable',
                 'string',
-                'regex:/^[0-9]{13}$/',
+                'digits:13',
                 Rule::unique('books', 'isbn')->ignore($this->route('book')),
             ],
             'published_date' => 'nullable|date',
@@ -48,8 +48,7 @@ class UpdateBookRequest extends FormRequest
             'author.string' => '著者名は文字列である必要があります。',
             'author.max' => '著者名が長すぎます',
             // 'isbn.required' => 'ISBNを入力してください',
-            'isbn.string' => 'ISBNは文字列である必要があります。',
-            'isbn.regex' => 'ISBNの文字数が不正です',
+            'isbn.digits' => 'ISBNは13桁の数値で入力する必要があります',
             'isbn.unique' => 'その書籍は既に登録されています',
             // 'published_date.required' => '出版日を入力してください',
             'published_date.date' => '出版日を日付の形式で入力してください',
