@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\v1\BookController;
+use App\Http\Controllers\Api\v1\ApiTokenController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,4 +21,10 @@ use App\Http\Controllers\Api\v1\BookController;
 // });
 
 
-Route::apiResource('books', BookController::class);
+Route::post('/tokens', [ApiTokenController::class, 'store']);
+
+Route::apiResource('books', BookController::class)->only(['index', 'show']);
+
+Route::middleware('auth:sanctum')->group(function () {
+	Route::apiResource('books', BookController::class)->only(['store', 'update', 'destroy']);
+});
