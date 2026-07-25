@@ -61,8 +61,8 @@
             errorEl.classList.add('hidden');
             successEl.classList.add('hidden');
 
-            if (isbn.length !== 13) {
-                errorEl.textContent = 'ISBNは13桁で入力してください。';
+            if (!/^\d{13}$/.test(isbn)) {
+                errorEl.textContent = 'ISBNは13桁の数字で入力してください。';
                 errorEl.classList.remove('hidden');
                 return;
             }
@@ -78,8 +78,10 @@
                 });
                 const data = await response.json();
 
-                if (data.error) {
-                    errorEl.textContent = data.error;
+                if (!response.ok || data.error) {
+                    errorEl.textContent = data.error
+                        || data.errors?.isbn?.[0]
+                        || '書籍情報の取得に失敗しました。';
                     errorEl.classList.remove('hidden');
                 } else {
                     document.getElementById('title').value = data.title || '';
