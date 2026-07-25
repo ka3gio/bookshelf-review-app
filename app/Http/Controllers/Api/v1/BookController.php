@@ -33,7 +33,7 @@ class BookController extends Controller
 
         $genreId = $validated['genre_id'] ?? null;
         if (filled($genreId)) {
-            $query->whereHas('genres', fn($query) => $query->whereKey($genreId));
+            $query->whereHas('genres', fn ($query) => $query->whereKey($genreId));
         }
 
         $page = $validated['page'] ?? 1;
@@ -49,13 +49,11 @@ class BookController extends Controller
      */
     public function store(StoreBookRequest $request)
     {
-        $this->authorize('create', Book::class);
-
         $validated = $request->validated();
         $genreIds = $validated['genres'] ?? [];
         unset($validated['genres']);
 
-        $book = $request->user()->books()->create($validated);
+        $book = Book::create($validated);
         if ($genreIds) {
             $book->genres()->attach($genreIds);
         }
@@ -80,8 +78,6 @@ class BookController extends Controller
      */
     public function update(UpdateBookRequest $request, Book $book)
     {
-        $this->authorize('update', $book);
-
         $validated = $request->validated();
         $genreIds = $validated['genres'] ?? [];
         unset($validated['genres']);
@@ -99,8 +95,6 @@ class BookController extends Controller
      */
     public function destroy(Book $book)
     {
-        $this->authorize('delete', $book);
-
         $book->delete();
 
         return response()->json(null, 204);
