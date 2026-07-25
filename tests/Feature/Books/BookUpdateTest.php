@@ -32,7 +32,7 @@ class BookUpdateTest extends BookTestCase
         $owner = User::factory()->create();
         $genre = Genre::factory()->create();
 
-        foreach ($this->invalidBookCases() as [$overrides, $field, $message, $duplicate]) {
+        foreach ($this->invalidBookCases('ISBNの文字数が不正です') as [$overrides, $field, $message, $duplicate]) {
             $book = Book::factory()->create(['user_id' => $owner->id]);
 
             if ($duplicate ?? false) {

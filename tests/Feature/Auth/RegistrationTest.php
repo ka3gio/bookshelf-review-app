@@ -11,6 +11,13 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_guest_can_view_registration_page(): void
+    {
+        $this->get('/register')
+            ->assertStatus(200)
+            ->assertViewIs('auth.register');
+    }
+
     public function test_guest_can_register_and_is_authenticated(): void
     {
         $response = $this->post('/register', [
@@ -20,7 +27,9 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password123',
         ]);
 
-        $response->assertRedirect(RouteServiceProvider::HOME);
+        $response
+            ->assertStatus(302)
+            ->assertRedirect(RouteServiceProvider::HOME);
         $this->assertAuthenticated();
         $this->assertDatabaseHas('users', [
             'name' => '新規ユーザー',
@@ -32,6 +41,7 @@ class RegistrationTest extends TestCase
     {
         $this->actingAs(User::factory()->create())
             ->get('/register')
+            ->assertStatus(302)
             ->assertRedirect(RouteServiceProvider::HOME);
     }
 
@@ -39,7 +49,9 @@ class RegistrationTest extends TestCase
     {
         $response = $this->post('/register', []);
 
-        $response->assertSessionHasErrors(['name', 'email', 'password']);
+        $response
+            ->assertStatus(302)
+            ->assertSessionHasErrors(['name', 'email', 'password']);
         $this->assertGuest();
     }
 
@@ -52,7 +64,9 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password123',
         ]);
 
-        $response->assertSessionHasErrors('email');
+        $response
+            ->assertStatus(302)
+            ->assertSessionHasErrors('email');
         $this->assertGuest();
     }
 
@@ -67,7 +81,9 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password123',
         ]);
 
-        $response->assertSessionHasErrors('email');
+        $response
+            ->assertStatus(302)
+            ->assertSessionHasErrors('email');
         $this->assertGuest();
     }
 
@@ -80,7 +96,9 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'different-password',
         ]);
 
-        $response->assertSessionHasErrors('password_confirmation');
+        $response
+            ->assertStatus(302)
+            ->assertSessionHasErrors('password_confirmation');
         $this->assertGuest();
     }
 }

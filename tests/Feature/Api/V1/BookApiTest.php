@@ -7,6 +7,7 @@ use App\Models\Genre;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class BookApiTest extends TestCase
@@ -75,18 +76,19 @@ class BookApiTest extends TestCase
             ['keyword' => '山田太郎'],
             ['genre_id' => $phpGenre->id],
         ] as $query) {
-            $this->getJson('/api/books?' . http_build_query($query))
+            $this->getJson('/api/books?'.http_build_query($query))
                 ->assertOk()
                 ->assertJsonCount(1, 'data')
                 ->assertJsonPath('data.0.id', $targetBook->id);
         }
     }
 
-    public function test_public_api_can_store_a_book_and_its_genres(): void
+    public function test_authenticated_user_can_store_a_book_and_its_genres(): void
     {
         $user = User::factory()->create();
+        Sanctum::actingAs($user);
         $genres = Genre::factory()->count(2)->create();
-        $payload = $this->bookPayload($genres->modelKeys(), ['user_id' => $user->id]);
+        $payload = $this->bookPayload($genres->modelKeys());
 
         $this->postJson('/api/books', $payload)
             ->assertCreated()
@@ -100,14 +102,17 @@ class BookApiTest extends TestCase
 
     public function test_store_returns_validation_errors(): void
     {
+        Sanctum::actingAs(User::factory()->create());
+
         $this->postJson('/api/books', [])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['user_id', 'title', 'author', 'isbn', 'published_date', 'genres']);
+            ->assertJsonValidationErrors(['title', 'author', 'genres']);
     }
 
-    public function test_public_api_can_update_a_book_and_sync_its_genres(): void
+    public function test_book_owner_can_update_a_book_and_sync_its_genres(): void
     {
         $book = Book::factory()->create();
+        Sanctum::actingAs($book->user);
         $oldGenre = Genre::factory()->create();
         $newGenres = Genre::factory()->count(2)->create();
         $book->genres()->attach($oldGenre);
@@ -124,9 +129,10 @@ class BookApiTest extends TestCase
         $this->assertEqualsCanonicalizing($newGenres->modelKeys(), $book->fresh()->genres()->pluck('genres.id')->all());
     }
 
-    public function test_public_api_can_delete_a_book(): void
+    public function test_book_owner_can_delete_a_book(): void
     {
         $book = Book::factory()->create();
+        Sanctum::actingAs($book->user);
 
         $this->deleteJson("/api/books/{$book->id}")
             ->assertNoContent();
