@@ -59,4 +59,39 @@ class BookUpdateTest extends BookTestCase
         $response->assertRedirect(route('books.show', $book));
         $response->assertSessionDoesntHaveErrors();
     }
+
+    public function test_book_can_be_updated_with_nullable_fields_set_to_null(): void
+    {
+        $owner = User::factory()->create();
+        $genre = Genre::factory()->create();
+        $book = Book::factory()->create([
+            'user_id' => $owner->id,
+            'isbn' => '9784000000001',
+            'published_date' => '2024-01-01',
+            'description' => '更新前の説明',
+            'image_url' => 'https://example.com/before.jpg',
+        ]);
+        $bookData = $this->bookData([$genre->id], [
+            'title' => '任意項目を空にした書籍',
+            'isbn' => null,
+            'published_date' => null,
+            'description' => null,
+            'image_url' => null,
+        ]);
+
+        $response = $this->actingAs($owner)
+            ->put(route('books.update', $book), $bookData);
+
+        $response
+            ->assertRedirect(route('books.show', $book))
+            ->assertSessionDoesntHaveErrors();
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'title' => '任意項目を空にした書籍',
+            'isbn' => null,
+            'published_date' => null,
+            'description' => null,
+            'image_url' => null,
+        ]);
+    }
 }

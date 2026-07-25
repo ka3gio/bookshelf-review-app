@@ -5,6 +5,7 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\GoogleBooksController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -40,10 +41,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('genres', GenreController::class);
 
-    /*
-     * Temporary routes for features whose controllers are not implemented yet.
-     */
-    Route::get('/reports', fn () => abort(501))->name('reports.index');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
     Route::prefix('reading-plans')->name('reading-plans.')->group(function () {
         Route::get('/', fn () => abort(501))->name('index');

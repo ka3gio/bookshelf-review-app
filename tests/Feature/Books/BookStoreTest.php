@@ -42,6 +42,35 @@ class BookStoreTest extends BookTestCase
         $this->assertEqualsCanonicalizing($genres->modelKeys(), $book->genres()->pluck('genres.id')->all());
     }
 
+    public function test_book_can_be_created_with_nullable_fields_set_to_null(): void
+    {
+        $user = User::factory()->create();
+        $genre = Genre::factory()->create();
+        $bookData = $this->bookData([$genre->id], [
+            'title' => '任意項目なしの書籍',
+            'isbn' => null,
+            'published_date' => null,
+            'description' => null,
+            'image_url' => null,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->post(route('books.store'), $bookData);
+
+        $book = Book::where('title', '任意項目なしの書籍')->firstOrFail();
+
+        $response
+            ->assertRedirect(route('books.show', $book))
+            ->assertSessionDoesntHaveErrors();
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'isbn' => null,
+            'published_date' => null,
+            'description' => null,
+            'image_url' => null,
+        ]);
+    }
+
     public function test_book_store_validates_input(): void
     {
         $user = User::factory()->create();

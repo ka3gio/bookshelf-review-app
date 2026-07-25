@@ -8,6 +8,20 @@ use App\Models\User;
 
 class BookAuthorizationTest extends BookTestCase
 {
+    public function test_guest_is_redirected_to_login_when_editing_updating_or_deleting_a_book(): void
+    {
+        $book = Book::factory()->create();
+
+        $this->get(route('books.edit', $book))
+            ->assertRedirect(route('login'));
+
+        $this->put(route('books.update', $book))
+            ->assertRedirect(route('login'));
+
+        $this->delete(route('books.destroy', $book))
+            ->assertRedirect(route('login'));
+    }
+
     public function test_book_owner_can_view_the_edit_page(): void
     {
         $owner = User::factory()->create();
