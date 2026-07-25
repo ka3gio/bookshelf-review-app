@@ -37,24 +37,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
     Route::resource('genres', GenreController::class);
-
-    /*
-     * Temporary routes for features whose controllers are not implemented yet.
-     */
-    Route::get('/reports', fn() => abort(501))->name('reports.index');
-
-    Route::prefix('reading-plans')->name('reading-plans.')->group(function () {
-        Route::get('/', fn() => abort(501))->name('index');
-        Route::get('/create', fn() => abort(501))->name('create');
-        Route::post('/', fn() => abort(501))->name('store');
-        Route::get('/{readingPlan}/edit', fn() => abort(501))->name('edit');
-        Route::put('/{readingPlan}', fn() => abort(501))->name('update');
-        Route::delete('/{readingPlan}', fn() => abort(501))->name('destroy');
-        Route::post('/{readingPlan}/complete', fn() => abort(501))->name('complete');
-    });
-
-    Route::get('/notifications', fn() => abort(501))->name('notifications.index');
-    Route::post('/notifications/{notification}/read', fn() => abort(501))->name('notifications.read');
 });
 
 Route::resource('/books', BookController::class)->only(['index', 'show']);

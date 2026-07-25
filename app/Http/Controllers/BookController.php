@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
-use App\Http\Requests\IndexBookRequest;
 
 use App\Models\Book;
 use App\Models\Genre;
@@ -14,55 +13,11 @@ class BookController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(IndexBookRequest $request)
+    public function index()
     {
-        $query = Book::with('genres')->withAvg('reviews', 'rating')->withCount('reviews');
+        $books = Book::with('genres')->paginate(10);
 
-        if ($request->filled('keyword')) {
-            $keyword = $request->keyword;
-            $query->where(function ($q) use ($keyword) {
-                $q->where('title', 'like', "%{$keyword}%")
-                    ->orWhere('author', 'like', "%{$keyword}%");
-            });
-        }
-
-        if ($request->filled('genre')) {
-            $query->whereHas('genres', function ($query) use ($request) {
-                $query->where('genres.id', $request->genre);
-            });
-        }
-        ;
-
-        $sortOptions = [
-            'newest' => [
-                ['created_at', 'desc'],
-            ],
-            'oldest' => [
-                ['created_at', 'asc'],
-            ],
-            'rating' => [
-                ['reviews_avg_rating', 'desc'],
-                ['reviews_count', 'desc'],
-            ],
-            'title' => [
-                ['title', 'asc'],
-            ],
-        ];
-
-        if ($request->filled('sort')) {
-            $sort = $request->input('sort', 'newest');
-            foreach ($sortOptions[$sort] as [$column, $direction]) {
-                $query->orderBy($column, $direction);
-            }
-        } else {
-            $query->latest();
-        }
-        ;
-
-        $books = $query->paginate(10)->withQueryString();
-        $genres = Genre::all();
-
-        return view('books.index', compact(['books', 'genres']));
+        return view('books.index', compact('books'));
     }
 
     /**
