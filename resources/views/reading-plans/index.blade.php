@@ -65,6 +65,12 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                                            @if($plan->status !== \App\Enums\ReadingPlanStatus::InProgress)
+                                                <form action="{{ route('reading-plans.inprogress', $plan) }}" method="POST" class="inline" novalidate>
+                                                    @csrf
+                                                    <button type="submit" class="text-yellow-600 hover:text-yellow-900">進行中にする</button>
+                                                </form>
+                                            @endif
                                             @if($plan->status !== \App\Enums\ReadingPlanStatus::Completed)
                                                 <form action="{{ route('reading-plans.complete', $plan) }}" method="POST" class="inline" novalidate>
                                                     @csrf

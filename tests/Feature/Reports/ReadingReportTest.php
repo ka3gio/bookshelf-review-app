@@ -42,26 +42,26 @@ class ReadingReportTest extends TestCase
         ReadingPlan::create([
             'user_id' => $user->id,
             'book_id' => $completedBook->id,
-            'limit_date' => '2026-08-01',
-            'plan_status' => 3,
+            'target_date' => '2026-08-01',
+            'status' => 3,
         ]);
         ReadingPlan::create([
             'user_id' => $user->id,
             'book_id' => $completedBook->id,
-            'limit_date' => '2026-08-02',
-            'plan_status' => 3,
+            'target_date' => '2026-08-02',
+            'status' => 3,
         ]);
         ReadingPlan::create([
             'user_id' => $user->id,
             'book_id' => $inProgressBook->id,
-            'limit_date' => '2026-08-03',
-            'plan_status' => 2,
+            'target_date' => '2026-08-03',
+            'status' => 2,
         ]);
         ReadingPlan::create([
             'user_id' => $otherUser->id,
             'book_id' => $inProgressBook->id,
-            'limit_date' => '2026-08-04',
-            'plan_status' => 3,
+            'target_date' => '2026-08-04',
+            'status' => 3,
         ]);
 
         $this->actingAs($user)
