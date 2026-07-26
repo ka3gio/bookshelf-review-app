@@ -64,4 +64,19 @@ class ReadingPlanManagementTest extends ReadingPlanTestCase
 
         $this->assertDatabaseHas('reading_plans', ['id' => $plan->id]);
     }
+
+    public function test_expired_plan_cannot_be_restarted_without_rescheduling(): void
+    {
+        $owner = User::factory()->create();
+        $plan = $this->createReadingPlan($owner, [
+            'target_date' => today()->subDay(),
+            'status' => ReadingPlanStatus::Expired,
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('reading-plans.inprogress', $plan))
+            ->assertForbidden();
+
+        $this->assertSame(ReadingPlanStatus::Expired, $plan->refresh()->status);
+    }
 }

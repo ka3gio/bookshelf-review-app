@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\ReadingPlan;
-use App\Models\Book;
+use App\Enums\ReadingPlanStatus;
 use App\Http\Requests\StoreReadingPlanRequest;
 use App\Http\Requests\UpdateReadingPlanRequest;
+use App\Models\Book;
+use App\Models\ReadingPlan;
+use Illuminate\Http\Request;
 
 class ReadingPlanController extends Controller
 {
@@ -24,10 +25,9 @@ class ReadingPlanController extends Controller
             ->with('book')
             ->when(
                 $currentStatus,
-                fn($query) => $query->where('status', $currentStatus)
+                fn ($query) => $query->where('status', $currentStatus)
             )
             ->get();
-
 
         return view('reading-plans.index', compact('readingPlans', 'currentStatus'));
     }
@@ -38,6 +38,7 @@ class ReadingPlanController extends Controller
     public function create()
     {
         $books = Book::all();
+
         return view('reading-plans.create', compact('books'));
     }
 
@@ -45,6 +46,7 @@ class ReadingPlanController extends Controller
     {
         $validated = $request->validated();
         $readingPlan = auth()->user()->readingPlans()->create($validated);
+
         return redirect()->route('reading-plans.index')->with('success', '読書計画を作成しました');
     }
 
@@ -64,6 +66,12 @@ class ReadingPlanController extends Controller
         $readingPlan = ReadingPlan::findOrFail($id);
         $this->authorize('update', $readingPlan);
         $validated = $request->validated();
+
+        if ($readingPlan->status === ReadingPlanStatus::Expired) {
+            $validated['status'] = ReadingPlanStatus::InProgress;
+            $validated['completed_at'] = null;
+        }
+
         $readingPlan->update($validated);
 
         return redirect()->route('reading-plans.index')->with('success', '読書計画を更新しました');
@@ -87,7 +95,7 @@ class ReadingPlanController extends Controller
         $this->authorize('inprogress', $readingPlan);
 
         $readingPlan->update([
-            'status' => 2,
+            'status' => ReadingPlanStatus::InProgress,
             'completed_at' => null,
         ]);
 
@@ -100,7 +108,7 @@ class ReadingPlanController extends Controller
         $this->authorize('complete', $readingPlan);
 
         $readingPlan->update([
-            'status' => 3,
+            'status' => ReadingPlanStatus::Completed,
             'completed_at' => today(),
         ]);
 
