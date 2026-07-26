@@ -20,8 +20,8 @@ class BookDeletionTest extends BookTestCase
         $readingPlan = ReadingPlan::create([
             'user_id' => $favoriteUser->id,
             'book_id' => $book->id,
-            'limit_date' => '2026-08-01',
-            'plan_status' => 1,
+            'target_date' => '2026-08-01',
+            'status' => 1,
         ]);
         $book->genres()->attach($genre);
         $favoriteUser->favoriteBooks()->attach($book);

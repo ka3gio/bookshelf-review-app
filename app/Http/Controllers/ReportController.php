@@ -10,7 +10,7 @@ class ReportController extends Controller
     {
         $user = auth()->user();
         $total_reviews = $user->reviews()->count();
-        $books_read = $user->readingPlans()->where('plan_status', 3)->distinct()->count('book_id');
+        $books_read = $user->readingPlans()->where('status', 3)->distinct()->count('book_id');
         $average_rating = $user->reviews()->avg('rating');
 
         $rating_distribution = $user->reviews()->selectRaw('rating, COUNT(*) as count')

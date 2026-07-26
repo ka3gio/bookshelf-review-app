@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\GoogleBooksController;
+use App\Http\Controllers\ReadingPlanController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
@@ -30,8 +31,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::resource('/books', BookController::class)->except(['index', 'show']);
     Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
-    Route::get('/books/isbn/{isbn?}', [GoogleBooksController::class, 'show'])
-        ->name('books.isbn.show');
+    Route::get('/books/isbn/{isbn?}', [GoogleBooksController::class, 'show'])->name('books.isbn.show');
 
     Route::resource('reviews', ReviewController::class)->only(['edit', 'update', 'destroy']);
     Route::post('reviews/{review}/like', [ReviewController::class, 'like'])->name('reviews.like');
@@ -43,18 +43,12 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
-    Route::prefix('reading-plans')->name('reading-plans.')->group(function () {
-        Route::get('/', fn () => abort(501))->name('index');
-        Route::get('/create', fn () => abort(501))->name('create');
-        Route::post('/', fn () => abort(501))->name('store');
-        Route::get('/{readingPlan}/edit', fn () => abort(501))->name('edit');
-        Route::put('/{readingPlan}', fn () => abort(501))->name('update');
-        Route::delete('/{readingPlan}', fn () => abort(501))->name('destroy');
-        Route::post('/{readingPlan}/complete', fn () => abort(501))->name('complete');
-    });
+    Route::resource('/reading-plans', ReadingPlanController::class)->except(['show']);
+    Route::post('/reading-plans/{plan}/inprogress', [ReadingPlanController::class, 'inprogress'])->name('reading-plans.inprogress');
+    Route::post('/reading-plans/{plan}/complete', [ReadingPlanController::class, 'complete'])->name('reading-plans.complete');
 
-    Route::get('/notifications', fn () => abort(501))->name('notifications.index');
-    Route::post('/notifications/{notification}/read', fn () => abort(501))->name('notifications.read');
+    Route::get('/notifications', fn() => abort(501))->name('notifications.index');
+    Route::post('/notifications/{notification}/read', fn() => abort(501))->name('notifications.read');
 });
 
 Route::resource('/books', BookController::class)->only(['index', 'show']);
