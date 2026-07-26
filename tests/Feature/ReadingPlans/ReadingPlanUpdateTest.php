@@ -96,4 +96,28 @@ class ReadingPlanUpdateTest extends ReadingPlanTestCase
             ])
             ->assertForbidden();
     }
+
+    public function test_updating_expired_plan_target_date_restarts_it_as_in_progress(): void
+    {
+        $this->travelTo('2026-07-26 12:00:00');
+        $owner = User::factory()->create();
+        $plan = $this->createReadingPlan($owner, [
+            'target_date' => today()->subWeek(),
+            'status' => ReadingPlanStatus::Expired,
+        ]);
+        $newTargetDate = today()->addWeek()->toDateString();
+
+        $this->actingAs($owner)
+            ->put(route('reading-plans.update', $plan), [
+                'target_date' => $newTargetDate,
+            ])
+            ->assertRedirect(route('reading-plans.index'))
+            ->assertSessionDoesntHaveErrors();
+
+        $plan->refresh();
+
+        $this->assertSame(ReadingPlanStatus::InProgress, $plan->status);
+        $this->assertSame($newTargetDate, $plan->target_date->toDateString());
+        $this->assertNull($plan->completed_at);
+    }
 }

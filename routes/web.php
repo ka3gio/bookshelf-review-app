@@ -7,6 +7,7 @@ use App\Http\Controllers\GoogleBooksController;
 use App\Http\Controllers\ReadingPlanController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -47,8 +48,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/reading-plans/{plan}/inprogress', [ReadingPlanController::class, 'inprogress'])->name('reading-plans.inprogress');
     Route::post('/reading-plans/{plan}/complete', [ReadingPlanController::class, 'complete'])->name('reading-plans.complete');
 
-    Route::get('/notifications', fn() => abort(501))->name('notifications.index');
-    Route::post('/notifications/{notification}/read', fn() => abort(501))->name('notifications.read');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
 });
 
 Route::resource('/books', BookController::class)->only(['index', 'show']);

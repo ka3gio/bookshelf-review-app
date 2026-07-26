@@ -16,7 +16,7 @@ class ReadingPlanSeeder extends Seeder
      */
     public function run(): void
     {
-        $today = CarbonImmutable::today();
+        $today = CarbonImmutable::today('Asia/Tokyo');
 
         $readingPlanData = [
             // 主要な動作確認は1人目のユーザーに集約する。
@@ -24,7 +24,7 @@ class ReadingPlanSeeder extends Seeder
                 'user_email' => 'yamada@example.com',
                 'book_isbn' => '9784101010014',
                 'status' => ReadingPlanStatus::NotStarted,
-                'target_date' => $today->addDays(14),
+                'target_date' => $today->addDays(3),
                 'completed_at' => null,
             ],
             [
@@ -38,29 +38,29 @@ class ReadingPlanSeeder extends Seeder
                 'user_email' => 'yamada@example.com',
                 'book_isbn' => '9784873115658',
                 'status' => ReadingPlanStatus::InProgress,
-                'target_date' => $today->addDays(7),
+                'target_date' => $today->subDays(3),
                 'completed_at' => null,
             ],
             [
                 'user_email' => 'yamada@example.com',
                 'book_isbn' => '9784863940246',
                 'status' => ReadingPlanStatus::InProgress,
-                'target_date' => $today->subDays(3),
+                'target_date' => $today->addDays(7),
                 'completed_at' => null,
             ],
             [
                 'user_email' => 'yamada@example.com',
                 'book_isbn' => '9784101010021',
                 'status' => ReadingPlanStatus::Completed,
-                'target_date' => $today->subDays(10),
-                'completed_at' => $today->subDays(8),
+                'target_date' => $today->addDays(3),
+                'completed_at' => $today->subDay(),
             ],
             [
                 'user_email' => 'yamada@example.com',
                 'book_isbn' => '9784309226712',
-                'status' => ReadingPlanStatus::Completed,
-                'target_date' => $today->subDays(5),
-                'completed_at' => $today->subDays(7),
+                'status' => ReadingPlanStatus::Expired,
+                'target_date' => $today->subDays(7),
+                'completed_at' => null,
             ],
 
             // 他ユーザーにも状態や期日の異なる計画を配置し、一覧の分離と認可を確認できるようにする。
