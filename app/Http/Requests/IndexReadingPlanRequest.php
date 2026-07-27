@@ -2,18 +2,19 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ReadingPlanStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateGenreRequest extends FormRequest
+class IndexReadingPlanRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return auth()->check();
+        return $this->user() !== null;
     }
 
     /**
@@ -24,11 +25,15 @@ class UpdateGenreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => [
-                'required',
-                'string',
-                'max:100',
-                Rule::unique('genres', 'name')->ignore($this->route('genre')),
+            'status' => [
+                'nullable',
+                'integer',
+                Rule::in(
+                    array_map(
+                        fn (ReadingPlanStatus $status) => $status->value,
+                        ReadingPlanStatus::cases()
+                    )
+                ),
             ],
         ];
     }
@@ -36,9 +41,8 @@ class UpdateGenreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'ジャンル名を入力してください',
-            'name.max' => 'ジャンル名が長すぎます',
-            'name.unique' => 'このジャンル名はすでに登録されています',
+            'status.integer' => '状態の指定が正しくありません',
+            'status.in' => '状態の指定が正しくありません',
         ];
     }
 }

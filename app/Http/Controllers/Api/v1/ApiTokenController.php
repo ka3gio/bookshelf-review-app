@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\v1\StoreApiTokenRequest;
 use App\Models\User;
-use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 
 class ApiTokenController extends Controller
 {
-    public function store(StoreApiTokenRequest $request)
+    public function store(StoreApiTokenRequest $request): JsonResponse
     {
         $validated = $request->validated();
 
@@ -20,9 +20,10 @@ class ApiTokenController extends Controller
             ! $user ||
             ! Hash::check($validated['password'], $user->password)
         ) {
-            throw new AuthenticationException(
-                'メールアドレスまたはパスワードが正しくありません'
-            );
+            return response()->json([
+                'message' => 'メールアドレスまたはパスワードが正しくありません',
+                'error_code' => 'INVALID_CREDENTIALS',
+            ], 401);
         }
 
         $token = $user->createToken('access_token')->plainTextToken;

@@ -2,35 +2,43 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ReadingPlanStatus;
 use App\Models\Genre;
+use App\Models\Review;
+use App\Models\User;
+use Illuminate\View\View;
 
 class ReportController extends Controller
 {
-    public function index()
+    public function index(): View
     {
-        $user = auth()->user();
-        $total_reviews = $user->reviews()->count();
-        $books_read = $user->readingPlans()->where('status', 3)->distinct()->count('book_id');
-        $average_rating = $user->reviews()->avg('rating');
+        /** @var User $user */
+        $user = request()->user();
+        $totalReviews = $user->reviews()->count();
+        $booksRead = $user->readingPlans()
+            ->where('status', ReadingPlanStatus::Completed->value)
+            ->distinct()
+            ->count('book_id');
+        $averageRating = $user->reviews()->avg('rating');
 
-        $rating_distribution = $user->reviews()->selectRaw('rating, COUNT(*) as count')
+        $ratingDistribution = $user->reviews()->selectRaw('rating, COUNT(*) as count')
             ->groupBy('rating')->orderBy('rating', 'asc')
             ->pluck('count', 'rating');
 
-        $rating_distribution = collect([1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0])
-            ->replace($rating_distribution);
+        $ratingDistribution = collect([1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0])
+            ->replace($ratingDistribution);
 
-        $top_rated_books = $user->reviews()->with('book')
+        $topRatedBooks = $user->reviews()->with('book')
             ->where('rating', '>=', 4)
             ->orderBy('rating', 'desc')
-            ->take(5)->get()->map(fn($review) => [
+            ->take(5)->get()->map(fn (Review $review): array => [
                 'id' => $review->book->id,
                 'title' => $review->book->title,
                 'author' => $review->book->author,
                 'rating' => $review->rating,
             ]);
 
-        $genre_ratings = Genre::query()
+        $genreRatings = Genre::query()
             ->join('book_genre', 'genres.id', '=', 'book_genre.genre_id')
             ->join('reviews', 'book_genre.book_id', '=', 'reviews.book_id')
             ->where('reviews.user_id', $user->id)
@@ -45,16 +53,18 @@ class ReportController extends Controller
             ->limit(5)
             ->get();
 
+        /** @var array<string, mixed> $stats */
         $stats = [
             'summary' => [
-                'total_reviews' => $total_reviews,
-                'books_read' => $books_read,
-                'average_rating' => $average_rating,
+                'total_reviews' => $totalReviews,
+                'books_read' => $booksRead,
+                'average_rating' => $averageRating,
             ],
-            'rating_distribution' => $rating_distribution,
-            'top_rated_books' => $top_rated_books,
-            'genre_ratings' => $genre_ratings,
+            'rating_distribution' => $ratingDistribution,
+            'top_rated_books' => $topRatedBooks,
+            'genre_ratings' => $genreRatings,
         ];
+
         return view('reports.index', compact('stats'));
     }
 }

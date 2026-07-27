@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +19,7 @@ class UpdateBookRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -56,6 +57,8 @@ class UpdateBookRequest extends FormRequest
             'description.max' => '説明が長すぎます',
             'image_url.url' => '画像リンクをURLで入力してください',
             'image_url.max' => '画像リンクが長すぎます',
+            'genres.required' => 'ジャンルを選択して下さい',
+            'genres.*.exits' => '指定されたジャンルは存在しません',
         ];
     }
 }

@@ -41,7 +41,7 @@ class AuthenticationTest extends TestCase
         $this->actingAs(User::factory()->create())
             ->post('/logout')
             ->assertStatus(302)
-            ->assertRedirect(RouteServiceProvider::HOME);
+            ->assertRedirect('/login');
 
         $this->assertGuest();
     }

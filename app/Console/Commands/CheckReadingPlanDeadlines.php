@@ -28,7 +28,7 @@ class CheckReadingPlanDeadlines extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
         return DB::transaction(fn () => $this->processDeadlines());
     }
@@ -51,7 +51,7 @@ class CheckReadingPlanDeadlines extends Command
             ->with(['user', 'book'])
             ->where('status', '!=', ReadingPlanStatus::Completed->value)
             ->whereDate('target_date', $today->addDays(3))
-            ->chunkById(100, function ($plans) {
+            ->chunkById(100, function ($plans): void {
                 foreach ($plans as $plan) {
                     $this->notifyOnce($plan, 'three_days_before');
                 }
@@ -61,7 +61,7 @@ class CheckReadingPlanDeadlines extends Command
             ->with(['user', 'book'])
             ->where('status', '!=', ReadingPlanStatus::Completed->value)
             ->whereDate('target_date', $today)
-            ->chunkById(100, function ($plans) {
+            ->chunkById(100, function ($plans): void {
                 foreach ($plans as $plan) {
                     $this->notifyOnce($plan, 'on_due_date');
                 }
@@ -71,7 +71,7 @@ class CheckReadingPlanDeadlines extends Command
             ->with(['user', 'book'])
             ->where('status', '!=', ReadingPlanStatus::Completed->value)
             ->whereDate('target_date', $today->subDays(3))
-            ->chunkById(100, function ($plans) {
+            ->chunkById(100, function ($plans): void {
                 foreach ($plans as $plan) {
                     $this->notifyOnce($plan, 'three_days_after');
                 }

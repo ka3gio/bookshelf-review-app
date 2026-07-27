@@ -2,27 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreGenreRequest;
 use App\Http\Requests\UpdateGenreRequest;
-
 use App\Models\Genre;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class GenreController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): View
     {
         $genres = Genre::withCount('books')->get();
+
         return view('genres.index', compact('genres'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): View
     {
         return view('genres.create');
     }
@@ -30,38 +31,39 @@ class GenreController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreGenreRequest $request)
+    public function store(StoreGenreRequest $request): RedirectResponse
     {
         $validated = $request->validated();
         Genre::create($validated);
 
         return redirect()->route('genres.index')->with('success', 'ジャンルを登録しました');
-
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id): View
     {
         $genre = Genre::findOrFail($id);
-        $books = $genre->books()->paginate(10);
+        $books = $genre->books()->with('genres')->paginate(10);
+
         return view('genres.show', compact('genre', 'books'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(string $id): View
     {
         $genre = Genre::findOrFail($id);
+
         return view('genres.edit', compact('genre'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateGenreRequest $request, string $id)
+    public function update(UpdateGenreRequest $request, string $id): RedirectResponse
     {
         $validated = $request->validated();
 
@@ -74,7 +76,7 @@ class GenreController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $id): RedirectResponse
     {
         $genre = Genre::findOrFail($id);
 

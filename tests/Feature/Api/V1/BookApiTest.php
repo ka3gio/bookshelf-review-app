@@ -27,11 +27,59 @@ class BookApiTest extends TestCase
 
         $this->getJson('/api/v1/books')
             ->assertOk()
+            ->assertJsonStructure([
+                'data' => [[
+                    'id',
+                    'user' => ['user_id', 'user_name'],
+                    'title',
+                    'author',
+                    'isbn',
+                    'published_date',
+                    'description',
+                    'image_url',
+                    'genres' => [[
+                        'id',
+                        'name',
+                    ]],
+                    'average_rating',
+                    'review_count',
+                ]],
+                'links' => ['first', 'last', 'prev', 'next'],
+                'meta' => [
+                    'current_page',
+                    'from',
+                    'last_page',
+                    'links',
+                    'path',
+                    'per_page',
+                    'to',
+                    'total',
+                ],
+            ])
             ->assertJsonPath('data.0.id', $book->id)
+            ->assertJsonPath('data.0.user.user_id', $book->user_id)
+            ->assertJsonPath('data.0.user.user_name', $book->user->name)
             ->assertJsonPath('data.0.genres.0.id', $genre->id)
+            ->assertJsonPath('data.0.genres.0.name', $genre->name)
             ->assertJsonPath('data.0.average_rating', 4.5)
             ->assertJsonPath('data.0.review_count', 2)
+            ->assertJsonMissingPath('data.0.created_at')
+            ->assertJsonMissingPath('data.0.updated_at')
+            ->assertJsonMissingPath('data.0.genres.0.created_at')
+            ->assertJsonMissingPath('data.0.genres.0.updated_at')
             ->assertJsonMissingPath('data.0.reviews');
+    }
+
+    // レビューがない書籍はレビュー件数0を返し、nullの平均評価は省略することを確認する。
+    public function test_index_omits_null_average_rating_for_a_book_without_reviews(): void
+    {
+        $book = Book::factory()->create();
+
+        $this->getJson('/api/v1/books')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $book->id)
+            ->assertJsonPath('data.0.review_count', 0)
+            ->assertJsonMissingPath('data.0.average_rating');
     }
 
     // 書籍詳細APIが書籍と関連情報を返すことを確認する。
@@ -45,19 +93,62 @@ class BookApiTest extends TestCase
 
         $this->getJson("/api/v1/books/{$book->id}")
             ->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'user' => ['user_id', 'user_name'],
+                    'title',
+                    'author',
+                    'isbn',
+                    'published_date',
+                    'description',
+                    'image_url',
+                    'genres' => [[
+                        'id',
+                        'name',
+                    ]],
+                    'average_rating',
+                    'review_count',
+                    'reviews' => [[
+                        'id',
+                        'user' => ['user_id', 'user_name'],
+                        'rating',
+                        'comment',
+                        'created_at',
+                        'updated_at',
+                        'likes_count',
+                    ]],
+                ],
+            ])
             ->assertJsonPath('data.id', $book->id)
+            ->assertJsonPath('data.user.user_id', $book->user_id)
+            ->assertJsonPath('data.user.user_name', $book->user->name)
             ->assertJsonPath('data.title', $book->title)
             ->assertJsonPath('data.genres.0.id', $genre->id)
+            ->assertJsonPath('data.genres.0.name', $genre->name)
             ->assertJsonPath('data.reviews.0.id', $review->id)
-            ->assertJsonPath('data.reviews.0.liked_count', 1)
+            ->assertJsonPath('data.reviews.0.user.user_id', $review->user_id)
+            ->assertJsonPath('data.reviews.0.user.user_name', $review->user->name)
+            ->assertJsonPath('data.reviews.0.likes_count', 1)
             ->assertJsonPath('data.average_rating', 3)
-            ->assertJsonPath('data.review_count', 1);
+            ->assertJsonPath('data.review_count', 1)
+            ->assertJsonMissingPath('data.created_at')
+            ->assertJsonMissingPath('data.updated_at')
+            ->assertJsonMissingPath('data.genres.0.created_at')
+            ->assertJsonMissingPath('data.genres.0.updated_at')
+            ->assertJsonMissingPath('data.reviews.0.book_id')
+            ->assertJsonMissingPath('data.reviews.0.liked_count');
     }
 
     // 存在しない書籍の詳細APIが404を返すことを確認する。
     public function test_show_returns_not_found_for_a_nonexistent_book(): void
     {
-        $this->getJson('/api/v1/books/999999')->assertNotFound();
+        $this->getJson('/api/v1/books/999999')
+            ->assertNotFound()
+            ->assertExactJson([
+                'message' => '指定されたリソースが見つかりません。',
+                'error_code' => 'RESOURCE_NOT_FOUND',
+            ]);
     }
 
     // 書籍一覧APIをタイトル、著者、ジャンルで絞り込めることを確認する。
@@ -117,6 +208,9 @@ class BookApiTest extends TestCase
             'keyword' => str_repeat('a', 101),
         ]))
             ->assertUnprocessable()
+            ->assertJsonPath('message', '入力内容に誤りがあります。')
+            ->assertJsonPath('error_code', 'VALIDATION_ERROR')
+            ->assertJsonPath('errors.keyword.0', 'キーワードは100文字以内で入力して下さい')
             ->assertJsonValidationErrors('keyword');
     }
 
@@ -163,8 +257,31 @@ class BookApiTest extends TestCase
 
         $this->postJson('/api/v1/books', $payload)
             ->assertCreated()
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'user' => ['user_id', 'user_name'],
+                    'title',
+                    'author',
+                    'isbn',
+                    'published_date',
+                    'description',
+                    'image_url',
+                    'genres' => [[
+                        'id',
+                        'name',
+                    ]],
+                ],
+            ])
             ->assertJsonPath('data.title', $payload['title'])
-            ->assertJsonPath('data.user.user_id', $user->id);
+            ->assertJsonPath('data.user.user_id', $user->id)
+            ->assertJsonPath('data.user.user_name', $user->name)
+            ->assertJsonCount(2, 'data.genres')
+            ->assertJsonMissingPath('data.created_at')
+            ->assertJsonMissingPath('data.updated_at')
+            ->assertJsonMissingPath('data.average_rating')
+            ->assertJsonMissingPath('data.review_count')
+            ->assertJsonMissingPath('data.reviews');
 
         $book = Book::where('isbn', $payload['isbn'])->firstOrFail();
         $this->assertDatabaseHas('books', ['id' => $book->id, 'user_id' => $user->id]);
@@ -178,6 +295,11 @@ class BookApiTest extends TestCase
 
         $this->postJson('/api/v1/books', [])
             ->assertUnprocessable()
+            ->assertJsonPath('message', '入力内容に誤りがあります。')
+            ->assertJsonPath('error_code', 'VALIDATION_ERROR')
+            ->assertJsonPath('errors.title.0', 'タイトルを入力してください')
+            ->assertJsonPath('errors.author.0', '著者名を入力してください')
+            ->assertJsonPath('errors.genres.0', 'ジャンルを入力してください')
             ->assertJsonValidationErrors(['title', 'author', 'genres']);
     }
 
@@ -207,6 +329,10 @@ class BookApiTest extends TestCase
         $oldGenre = Genre::factory()->create();
         $newGenres = Genre::factory()->count(2)->create();
         $book->genres()->attach($oldGenre);
+        Review::factory()->create([
+            'book_id' => $book->id,
+            'rating' => 4,
+        ]);
         $payload = $this->bookPayload($newGenres->modelKeys(), [
             'title' => '更新後の書籍',
             'isbn' => $book->isbn,
@@ -214,7 +340,32 @@ class BookApiTest extends TestCase
 
         $this->putJson("/api/v1/books/{$book->id}", $payload)
             ->assertOk()
-            ->assertJsonPath('data.title', '更新後の書籍');
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'user' => ['user_id', 'user_name'],
+                    'title',
+                    'author',
+                    'isbn',
+                    'published_date',
+                    'description',
+                    'image_url',
+                    'genres' => [[
+                        'id',
+                        'name',
+                    ]],
+                    'average_rating',
+                    'review_count',
+                ],
+            ])
+            ->assertJsonPath('data.title', '更新後の書籍')
+            ->assertJsonPath('data.user.user_id', $book->user_id)
+            ->assertJsonPath('data.average_rating', 4)
+            ->assertJsonPath('data.review_count', 1)
+            ->assertJsonCount(2, 'data.genres')
+            ->assertJsonMissingPath('data.created_at')
+            ->assertJsonMissingPath('data.updated_at')
+            ->assertJsonMissingPath('data.reviews');
 
         $this->assertDatabaseHas('books', ['id' => $book->id, 'title' => '更新後の書籍']);
         $this->assertEqualsCanonicalizing($newGenres->modelKeys(), $book->fresh()->genres()->pluck('genres.id')->all());
@@ -241,7 +392,12 @@ class BookApiTest extends TestCase
 
         $this->putJson("/api/v1/books/{$book->id}", $this->bookPayload([$genre->id], [
             'isbn' => $book->isbn,
-        ]))->assertForbidden();
+        ]))
+            ->assertForbidden()
+            ->assertExactJson([
+                'message' => 'この操作を実行する権限がありません。',
+                'error_code' => 'FORBIDDEN',
+            ]);
     }
 
     // 所有者以外がAPIから書籍を削除できないことを確認する。
@@ -251,7 +407,11 @@ class BookApiTest extends TestCase
         Sanctum::actingAs(User::factory()->create());
 
         $this->deleteJson("/api/v1/books/{$book->id}")
-            ->assertForbidden();
+            ->assertForbidden()
+            ->assertExactJson([
+                'message' => 'この操作を実行する権限がありません。',
+                'error_code' => 'FORBIDDEN',
+            ]);
 
         $this->assertDatabaseHas('books', ['id' => $book->id]);
     }
@@ -292,7 +452,9 @@ class BookApiTest extends TestCase
         Sanctum::actingAs(User::factory()->create());
 
         $this->putJson('/api/v1/books/999999', [])
-            ->assertNotFound();
+            ->assertNotFound()
+            ->assertJsonPath('message', '指定されたリソースが見つかりません。')
+            ->assertJsonPath('error_code', 'RESOURCE_NOT_FOUND');
     }
 
     // 存在しない書籍のAPI削除が404を返すことを確認する。
@@ -301,7 +463,9 @@ class BookApiTest extends TestCase
         Sanctum::actingAs(User::factory()->create());
 
         $this->deleteJson('/api/v1/books/999999')
-            ->assertNotFound();
+            ->assertNotFound()
+            ->assertJsonPath('message', '指定されたリソースが見つかりません。')
+            ->assertJsonPath('error_code', 'RESOURCE_NOT_FOUND');
     }
 
     public static function bookFilterCases(): array

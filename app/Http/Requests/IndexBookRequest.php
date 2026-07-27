@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class IndexBookRequest extends FormRequest
@@ -11,20 +12,20 @@ class IndexBookRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return True;
+        return true;
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'keyword' => 'nullable|string|max:255',
             'genre' => 'nullable|integer|exists:genres,id',
-            'sort' => 'nullable|in:newest,oldest,rating,title'
+            'sort' => 'nullable|in:latest,oldest,rating,title',
         ];
     }
 
@@ -33,7 +34,7 @@ class IndexBookRequest extends FormRequest
         return [
             'keyword.max' => 'キーワードは255文字以内で入力してください',
             'genre.integer' => 'ジャンルIDを数値で指定して下さい',
-            'genre.exist' => '指定されたジャンルは存在しません',
+            'genre.exists' => '指定されたジャンルは存在しません',
             'sort.in' => '指定された並び順が不正です',
         ];
     }

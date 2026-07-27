@@ -20,6 +20,7 @@ class ApiTokenAuthenticationTest extends TestCase
             'password' => 'password',
         ])
             ->assertStatus(201)
+            ->assertJsonCount(2)
             ->assertJsonStructure(['token', 'token_type'])
             ->assertJsonPath('token_type', 'Bearer');
 
@@ -34,7 +35,10 @@ class ApiTokenAuthenticationTest extends TestCase
             'password' => 'password',
         ])
             ->assertStatus(401)
-            ->assertJsonPath('message', 'メールアドレスまたはパスワードが正しくありません');
+            ->assertExactJson([
+                'message' => 'メールアドレスまたはパスワードが正しくありません',
+                'error_code' => 'INVALID_CREDENTIALS',
+            ]);
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
@@ -49,7 +53,10 @@ class ApiTokenAuthenticationTest extends TestCase
             'password' => 'incorrect-password',
         ])
             ->assertStatus(401)
-            ->assertJsonPath('message', 'メールアドレスまたはパスワードが正しくありません');
+            ->assertExactJson([
+                'message' => 'メールアドレスまたはパスワードが正しくありません',
+                'error_code' => 'INVALID_CREDENTIALS',
+            ]);
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
@@ -63,7 +70,10 @@ class ApiTokenAuthenticationTest extends TestCase
         ])
             ->assertUnauthorized()
             ->assertHeader('content-type', 'application/json')
-            ->assertJsonPath('message', 'メールアドレスまたはパスワードが正しくありません');
+            ->assertExactJson([
+                'message' => 'メールアドレスまたはパスワードが正しくありません',
+                'error_code' => 'INVALID_CREDENTIALS',
+            ]);
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
@@ -73,6 +83,18 @@ class ApiTokenAuthenticationTest extends TestCase
     {
         $this->postJson('/api/v1/tokens', [])
             ->assertStatus(422)
+            ->assertJsonStructure([
+                'message',
+                'error_code',
+                'errors' => [
+                    'email',
+                    'password',
+                ],
+            ])
+            ->assertJsonPath('message', '入力内容に誤りがあります。')
+            ->assertJsonPath('error_code', 'VALIDATION_ERROR')
+            ->assertJsonPath('errors.email.0', 'メールアドレスを入力してください')
+            ->assertJsonPath('errors.password.0', 'パスワードを入力してください')
             ->assertJsonValidationErrors(['email', 'password']);
     }
 
@@ -80,20 +102,32 @@ class ApiTokenAuthenticationTest extends TestCase
     public function test_guest_cannot_access_a_protected_api_endpoint(): void
     {
         $this->postJson('/api/v1/books', [])
-            ->assertStatus(401);
+            ->assertStatus(401)
+            ->assertExactJson([
+                'message' => '認証が必要です。',
+                'error_code' => 'AUTHENTICATION_REQUIRED',
+            ]);
     }
 
     // 未認証ユーザーが保護された書籍更新APIを利用できないことを確認する。
     public function test_guest_cannot_update_a_book_through_the_api(): void
     {
         $this->putJson('/api/v1/books/999999', [])
-            ->assertUnauthorized();
+            ->assertUnauthorized()
+            ->assertExactJson([
+                'message' => '認証が必要です。',
+                'error_code' => 'AUTHENTICATION_REQUIRED',
+            ]);
     }
 
     // 未認証ユーザーが保護された書籍削除APIを利用できないことを確認する。
     public function test_guest_cannot_delete_a_book_through_the_api(): void
     {
         $this->deleteJson('/api/v1/books/999999')
-            ->assertUnauthorized();
+            ->assertUnauthorized()
+            ->assertExactJson([
+                'message' => '認証が必要です。',
+                'error_code' => 'AUTHENTICATION_REQUIRED',
+            ]);
     }
 }
