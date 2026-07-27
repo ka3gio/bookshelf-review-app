@@ -12,6 +12,7 @@ use RuntimeException;
 
 class ReadingReminderCommandTest extends NotificationTestCase
 {
+    // 対象期日の読書計画だけに通知を作成することを確認する。
     public function test_command_stores_database_notifications_only_for_eligible_plans(): void
     {
         $this->travelTo('2026-07-26 07:00:00');
@@ -67,6 +68,7 @@ class ReadingReminderCommandTest extends NotificationTestCase
         ]);
     }
 
+    // 同日の再実行で通知を重複作成しないことを確認する。
     public function test_command_does_not_create_duplicate_reminder_for_same_plan_on_same_day(): void
     {
         $this->travelTo('2026-07-26 07:00:00');
@@ -86,6 +88,7 @@ class ReadingReminderCommandTest extends NotificationTestCase
         );
     }
 
+    // 期限超過した有効な計画を期限切れにすることを確認する。
     public function test_command_marks_overdue_active_plans_as_expired(): void
     {
         $this->travelTo('2026-07-26 07:00:00');
@@ -115,6 +118,7 @@ class ReadingReminderCommandTest extends NotificationTestCase
         $this->assertSame(ReadingPlanStatus::Completed, $completed->refresh()->status);
     }
 
+    // 通知処理失敗時にデータベース変更をロールバックすることを確認する。
     public function test_command_rolls_back_database_changes_when_related_processing_fails(): void
     {
         $this->travelTo('2026-07-26 07:00:00');

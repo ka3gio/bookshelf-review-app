@@ -14,11 +14,16 @@ class ReadingReportTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_is_redirected_to_login_and_authenticated_user_can_view_report(): void
+    // ゲストによる読書レポートへのアクセスを拒否することを確認する。
+    public function test_guest_is_redirected_to_login_when_viewing_report(): void
     {
         $this->get(route('reports.index'))
             ->assertRedirect(route('login'));
+    }
 
+    // 認証済みユーザーが読書レポートを表示できることを確認する。
+    public function test_authenticated_user_can_view_report(): void
+    {
         $this->actingAs(User::factory()->create())
             ->get(route('reports.index'))
             ->assertOk()
@@ -26,6 +31,7 @@ class ReadingReportTest extends TestCase
             ->assertSee('マイ読書レポート');
     }
 
+    // ログイン中ユーザーのデータだけで概要を集計することを確認する。
     public function test_summary_is_aggregated_from_only_the_authenticated_users_data(): void
     {
         $user = User::factory()->create();
@@ -74,6 +80,7 @@ class ReadingReportTest extends TestCase
             });
     }
 
+    // 自分のレビューだけで星1から5の評価分布を作成することを確認する。
     public function test_rating_distribution_contains_all_stars_and_excludes_other_users_reviews(): void
     {
         $user = User::factory()->create();
@@ -102,6 +109,7 @@ class ReadingReportTest extends TestCase
             });
     }
 
+    // 自分の高評価書籍を評価順で最大5冊表示することを確認する。
     public function test_top_rated_books_are_sorted_by_rating_limited_to_five_and_scoped_to_user(): void
     {
         $user = User::factory()->create();
@@ -135,6 +143,7 @@ class ReadingReportTest extends TestCase
             ->assertDontSee('他ユーザーの高評価書籍');
     }
 
+    // 自分のレビューからジャンル別評価上位5件を集計することを確認する。
     public function test_genre_rating_trends_are_aggregated_sorted_limited_and_scoped_to_user(): void
     {
         $user = User::factory()->create();
@@ -185,6 +194,7 @@ class ReadingReportTest extends TestCase
             ->assertDontSee('他ユーザー専用');
     }
 
+    // レビューのないユーザーに空状態を表示することを確認する。
     public function test_user_without_reviews_can_view_the_empty_state(): void
     {
         $response = $this->actingAs(User::factory()->create())

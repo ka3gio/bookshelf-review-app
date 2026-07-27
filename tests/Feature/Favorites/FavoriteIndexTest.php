@@ -11,6 +11,12 @@ class FavoriteIndexTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_favorite_index_uses_the_plural_url(): void
+    {
+        $this->assertSame('/favorites', route('favorites.index', absolute: false));
+    }
+
+    // ログイン中ユーザーのお気に入り書籍だけを表示することを確認する。
     public function test_favorite_index_displays_only_current_users_favorite_books(): void
     {
         $user = User::factory()->create();
@@ -27,6 +33,7 @@ class FavoriteIndexTest extends TestCase
             ->assertDontSee('他人のお気に入り書籍');
     }
 
+    // ゲストのお気に入り一覧アクセスを拒否することを確認する。
     public function test_guest_is_redirected_to_login_when_viewing_favorites(): void
     {
         $this->get(route('favorites.index'))

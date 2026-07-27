@@ -23,4 +23,13 @@ abstract class ReadingPlanTestCase extends TestCase
             'completed_at' => null,
         ], $attributes));
     }
+
+    public static function invalidTargetDateCases(): array
+    {
+        return [
+            'missing date' => [null, '期日を入力してください'],
+            'invalid date format' => ['not-a-date', '期日を正しい形式で入力してください'],
+            'past date' => ['2026-07-25', '期日は今日以降の日付を指定してください'],
+        ];
+    }
 }

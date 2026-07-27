@@ -11,6 +11,7 @@ class GenreRelationshipTest extends TestCase
 {
     use RefreshDatabase;
 
+    // ジャンルに複数書籍を紐付けられることを確認する。
     public function test_genre_can_belong_to_multiple_books(): void
     {
         $genre = Genre::factory()->create();

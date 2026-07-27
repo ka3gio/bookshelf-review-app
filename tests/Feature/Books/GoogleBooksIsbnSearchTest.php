@@ -16,6 +16,7 @@ class GoogleBooksIsbnSearchTest extends BookTestCase
         Http::preventStrayRequests();
     }
 
+    // 登録画面にISBN検索と自動入力項目が存在することを確認する。
     public function test_create_page_contains_isbn_search_and_autofill_fields(): void
     {
         $response = $this->actingAs(User::factory()->create())
@@ -32,6 +33,7 @@ class GoogleBooksIsbnSearchTest extends BookTestCase
             ->assertSee('id="image_url"', false);
     }
 
+    // 有効なISBNからGoogle Booksの書籍情報を取得できることを確認する。
     public function test_valid_isbn_returns_book_data_from_google_books(): void
     {
         Http::fake([
@@ -76,6 +78,7 @@ class GoogleBooksIsbnSearchTest extends BookTestCase
         });
     }
 
+    // 桁数不正のISBNを外部通信前に拒否することを確認する。
     public function test_invalid_length_isbn_returns_validation_error_without_api_request(): void
     {
         Http::fake();
@@ -89,6 +92,7 @@ class GoogleBooksIsbnSearchTest extends BookTestCase
         Http::assertNothingSent();
     }
 
+    // 数字以外を含むISBNを外部通信前に拒否することを確認する。
     public function test_non_numeric_isbn_returns_validation_error_without_api_request(): void
     {
         Http::fake();
@@ -102,6 +106,7 @@ class GoogleBooksIsbnSearchTest extends BookTestCase
         Http::assertNothingSent();
     }
 
+    // ISBN未指定を外部通信前に拒否することを確認する。
     public function test_missing_isbn_returns_validation_error_without_api_request(): void
     {
         Http::fake();
@@ -115,6 +120,7 @@ class GoogleBooksIsbnSearchTest extends BookTestCase
         Http::assertNothingSent();
     }
 
+    // 書籍が見つからない場合に利用者向けエラーを返すことを確認する。
     public function test_book_not_found_returns_user_readable_error(): void
     {
         Http::fake([
@@ -130,6 +136,7 @@ class GoogleBooksIsbnSearchTest extends BookTestCase
             ->assertJsonPath('error', '書籍が見つかりませんでした。');
     }
 
+    // 外部API障害時に内部例外を公開しないことを確認する。
     public function test_google_books_server_error_is_handled_without_exposing_exception(): void
     {
         Http::fake([
@@ -143,6 +150,7 @@ class GoogleBooksIsbnSearchTest extends BookTestCase
             ->assertJsonMissingPath('exception');
     }
 
+    // 外部APIタイムアウト時に内部例外を公開しないことを確認する。
     public function test_google_books_timeout_is_handled_without_exposing_exception(): void
     {
         Http::fake(function () {
@@ -156,6 +164,7 @@ class GoogleBooksIsbnSearchTest extends BookTestCase
             ->assertJsonMissingPath('exception');
     }
 
+    // 不正な外部レスポンスを外部サービス障害として処理することを確認する。
     public function test_invalid_google_books_response_is_handled_as_upstream_failure(): void
     {
         Http::fake([
@@ -173,6 +182,7 @@ class GoogleBooksIsbnSearchTest extends BookTestCase
             ->assertJsonMissingPath('exception');
     }
 
+    // ゲストがISBN検索を利用できないことを確認する。
     public function test_guest_cannot_use_isbn_search(): void
     {
         Http::fake();

@@ -10,6 +10,7 @@ use App\Models\User;
 
 class BookDeletionTest extends BookTestCase
 {
+    // 書籍削除時に関連レコードも削除されることを確認する。
     public function test_book_owner_can_delete_book_and_its_related_records(): void
     {
         $owner = User::factory()->create();
