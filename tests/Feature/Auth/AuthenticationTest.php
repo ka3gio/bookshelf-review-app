@@ -11,6 +11,7 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
+    // ゲストがログイン画面を表示できることを確認する。
     public function test_guest_can_view_login_page(): void
     {
         $this->get('/login')
@@ -18,6 +19,7 @@ class AuthenticationTest extends TestCase
             ->assertViewIs('auth.login');
     }
 
+    // 正しい認証情報でログインできることを確認する。
     public function test_guest_can_log_in_with_valid_credentials(): void
     {
         $user = User::factory()->create();
@@ -33,16 +35,18 @@ class AuthenticationTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    // 認証済みユーザーがログアウトできることを確認する。
     public function test_authenticated_user_can_log_out(): void
     {
         $this->actingAs(User::factory()->create())
             ->post('/logout')
             ->assertStatus(302)
-            ->assertRedirect(RouteServiceProvider::HOME);
+            ->assertRedirect('/login');
 
         $this->assertGuest();
     }
 
+    // 認証済みユーザーがログイン画面からホームへ戻されることを確認する。
     public function test_authenticated_user_is_redirected_from_login_page(): void
     {
         $this->actingAs(User::factory()->create())
@@ -51,6 +55,7 @@ class AuthenticationTest extends TestCase
             ->assertRedirect(RouteServiceProvider::HOME);
     }
 
+    // ログインにメールアドレスとパスワードが必要なことを確認する。
     public function test_login_requires_email_and_password(): void
     {
         $response = $this->post('/login', []);
@@ -61,6 +66,7 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    // 未登録メールアドレスではログインできないことを確認する。
     public function test_login_fails_with_unknown_email(): void
     {
         $response = $this->post('/login', [
@@ -74,6 +80,7 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    // 誤ったパスワードではログインできないことを確認する。
     public function test_login_fails_with_incorrect_password(): void
     {
         $user = User::factory()->create();

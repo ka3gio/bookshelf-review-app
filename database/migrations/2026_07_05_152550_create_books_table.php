@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -15,7 +16,7 @@ return new class extends Migration {
             $table->foreignId('user_id')->constrained();
             $table->string('title', 255);
             $table->string('author', 100);
-            $table->string('isbn', 13);
+            $table->string('isbn', 13)->unique();
             $table->date('published_date');
             $table->string('description', 1000)->nullable();
             $table->string('image_url', 255)->nullable();

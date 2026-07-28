@@ -9,6 +9,17 @@ use App\Models\User;
 
 class BookDisplayTest extends BookTestCase
 {
+    public function test_root_path_displays_the_book_index(): void
+    {
+        Book::factory()->create(['title' => 'トップ画面の書籍']);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertViewIs('books.index')
+            ->assertSee('トップ画面の書籍');
+    }
+
+    // 書籍一覧に書籍の概要が表示されることを確認する。
     public function test_book_index_displays_book_summary(): void
     {
         $book = Book::factory()->create([
@@ -24,6 +35,7 @@ class BookDisplayTest extends BookTestCase
             ->assertSee(['テスト書籍', 'テスト著者', '技術書', 'https://example.com/book.jpg']);
     }
 
+    // 書籍詳細に書籍情報とレビューが表示されることを確認する。
     public function test_book_show_displays_book_details_and_reviews(): void
     {
         $owner = User::factory()->create();

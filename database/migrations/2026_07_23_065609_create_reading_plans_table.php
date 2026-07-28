@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -14,8 +15,9 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('book_id')->constrained()->onDelete('cascade');
-            $table->date('limit_date');
-            $table->tinyInteger('plan_status');
+            $table->date('target_date');
+            $table->tinyInteger('status')->default(1);
+            $table->date('completed_at')->nullable();
             $table->timestamps();
         });
     }

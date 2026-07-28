@@ -12,15 +12,21 @@ class BookRankingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guests_and_authenticated_users_can_view_ranking(): void
+    // ゲストがランキングを表示できることを確認する。
+    public function test_guest_can_view_ranking(): void
     {
         $this->get(route('ranking.index'))->assertOk();
+    }
 
+    // 認証済みユーザーがランキングを表示できることを確認する。
+    public function test_authenticated_user_can_view_ranking(): void
+    {
         $this->actingAs(User::factory()->create())
             ->get(route('ranking.index'))
             ->assertOk();
     }
 
+    // 評価平均順で上位10冊だけをランキング表示することを確認する。
     public function test_ranking_is_sorted_by_average_rating_and_limited_to_ten_books(): void
     {
         $ratings = [5, 5, 5, 4, 4, 4, 3, 3, 3, 2, 1];
@@ -39,6 +45,7 @@ class BookRankingTest extends TestCase
         });
     }
 
+    // レビューのない書籍をランキングから除外することを確認する。
     public function test_books_without_reviews_are_excluded_from_ranking(): void
     {
         $reviewedBook = Book::factory()->create(['title' => 'レビューあり書籍']);
@@ -54,6 +61,7 @@ class BookRankingTest extends TestCase
             });
     }
 
+    // ランキングに書籍情報と評価平均を表示することを確認する。
     public function test_ranking_displays_book_information_and_average_rating(): void
     {
         $book = Book::factory()->create([
@@ -75,6 +83,7 @@ class BookRankingTest extends TestCase
             ]);
     }
 
+    // 同評価時にレビュー数とIDで順位を決めることを確認する。
     public function test_ranking_uses_review_count_then_id_to_break_ties(): void
     {
         $moreReviewedBook = Book::factory()->create(['title' => 'レビュー数が多い書籍']);

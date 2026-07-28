@@ -16,4 +16,14 @@ abstract class ReviewTestCase extends TestCase
             'comment' => 'とても参考になりました。',
         ], $overrides);
     }
+
+    public static function invalidRatingCases(): array
+    {
+        return [
+            'missing rating' => [null],
+            'below minimum' => [0],
+            'above maximum' => [6],
+            'non integer' => ['2.5'],
+        ];
+    }
 }

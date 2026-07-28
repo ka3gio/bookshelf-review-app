@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +19,7 @@ class UpdateBookRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -28,14 +29,14 @@ class UpdateBookRequest extends FormRequest
             'isbn' => [
                 'nullable',
                 'string',
-                'regex:/^[0-9]{13}$/',
+                'digits:13',
                 Rule::unique('books', 'isbn')->ignore($this->route('book')),
             ],
             'published_date' => 'nullable|date',
             'description' => 'nullable|string|max:1000',
             'image_url' => 'nullable|url|max:255',
             'genres' => 'required|array',
-            'genres.*' => 'integer|exists:genres,id',
+            'genres.*' => 'integer|distinct|exists:genres,id',
         ];
     }
 
@@ -48,8 +49,7 @@ class UpdateBookRequest extends FormRequest
             'author.string' => '著者名は文字列である必要があります。',
             'author.max' => '著者名が長すぎます',
             // 'isbn.required' => 'ISBNを入力してください',
-            'isbn.string' => 'ISBNは文字列である必要があります。',
-            'isbn.regex' => 'ISBNの文字数が不正です',
+            'isbn.digits' => 'ISBNは13桁の数値で入力する必要があります',
             'isbn.unique' => 'その書籍は既に登録されています',
             // 'published_date.required' => '出版日を入力してください',
             'published_date.date' => '出版日を日付の形式で入力してください',
@@ -57,6 +57,9 @@ class UpdateBookRequest extends FormRequest
             'description.max' => '説明が長すぎます',
             'image_url.url' => '画像リンクをURLで入力してください',
             'image_url.max' => '画像リンクが長すぎます',
+            'genres.required' => 'ジャンルを選択して下さい',
+            'genres.*.distinct' => '同じジャンルを重複して指定できません',
+            'genres.*.exists' => '指定されたジャンルは存在しません',
         ];
     }
 }

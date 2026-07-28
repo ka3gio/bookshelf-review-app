@@ -2,35 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreReviewRequest;
 use App\Http\Requests\UpdateReviewRequest;
-
-use App\Models\Review;
 use App\Models\Book;
+use App\Models\Review;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ReviewController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * レビュー一覧用のアクション
+     *
+     * @return void 戻り値なし
      */
-    public function index()
+    public function index(): void
     {
         //
     }
 
     /**
-     * Show the form for creating a new resource.
+     * レビュー登録画面用のアクション
+     *
+     * @return void 戻り値なし
      */
-    public function create()
+    public function create(): void
     {
         //
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 書籍にレビューを登録する
+     *
+     * @param  StoreReviewRequest  $request  バリデーション済みのリクエスト
+     * @param  Book  $book  レビュー対象の書籍
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
      */
-    public function store(StoreReviewRequest $request, Book $book)
+    public function store(StoreReviewRequest $request, Book $book): RedirectResponse
     {
         $book->reviews()->create([
             ...$request->validated(),
@@ -41,17 +50,23 @@ class ReviewController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * レビュー詳細用のアクション
+     *
+     * @param  string  $id  レビューID
+     * @return void 戻り値なし
      */
-    public function show(string $id)
+    public function show(string $id): void
     {
         //
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * レビュー編集画面を表示する
+     *
+     * @param  string  $id  レビューID
+     * @return View レビュー編集画面
      */
-    public function edit(string $id)
+    public function edit(string $id): View
     {
         $review = Review::findOrFail($id);
         $this->authorize('update', $review);
@@ -60,9 +75,13 @@ class ReviewController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * レビューを更新する
+     *
+     * @param  UpdateReviewRequest  $request  バリデーション済みのリクエスト
+     * @param  string  $id  レビューID
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
      */
-    public function update(UpdateReviewRequest $request, string $id)
+    public function update(UpdateReviewRequest $request, string $id): RedirectResponse
     {
         $review = Review::findOrFail($id);
         $this->authorize('update', $review);
@@ -74,9 +93,12 @@ class ReviewController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * レビューを削除する
+     *
+     * @param  string  $id  レビューID
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
      */
-    public function destroy(string $id)
+    public function destroy(string $id): RedirectResponse
     {
         $review = Review::findOrFail($id);
         $this->authorize('delete', $review);
@@ -85,16 +107,25 @@ class ReviewController extends Controller
         return redirect()->route('books.show', $review->book_id)->with('success', 'レビューを削除しました');
     }
 
-    public function like(Review $review, Request $request)
+    /**
+     * レビューのいいね状態を切り替える
+     *
+     * @param  Review  $review  対象のレビュー
+     * @param  Request  $request  リクエスト
+     * @return RedirectResponse 直前の画面へのリダイレクト
+     */
+    public function like(Review $review, Request $request): RedirectResponse
     {
         if ($review->likedByUsers()->where('user_id', auth()->id())->exists()) {
             // すでにいいねしている場合は削除
             $review->likedByUsers()->detach(auth()->id());
+
             return back()->with('success', 'いいねを取り消しました');
-        } else {
-            // いいねしていない場合は追加
-            $review->likedByUsers()->attach(auth()->id());
-            return back()->with('success', 'いいねしました');
         }
+
+        // いいねしていない場合は追加
+        $review->likedByUsers()->attach(auth()->id());
+
+        return back()->with('success', 'いいねしました');
     }
 }

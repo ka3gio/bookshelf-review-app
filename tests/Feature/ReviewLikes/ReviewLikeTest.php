@@ -12,6 +12,7 @@ class ReviewLikeTest extends TestCase
 {
     use RefreshDatabase;
 
+    // 認証済みユーザーがレビューへいいねできることを確認する。
     public function test_authenticated_user_can_like_a_review(): void
     {
         $user = User::factory()->create();
@@ -27,6 +28,7 @@ class ReviewLikeTest extends TestCase
         ]);
     }
 
+    // いいね済みレビューを再操作すると解除されることを確認する。
     public function test_liking_a_review_again_removes_the_like(): void
     {
         $user = User::factory()->create();
@@ -41,6 +43,7 @@ class ReviewLikeTest extends TestCase
         ]);
     }
 
+    // 同じレビューへのいいねを重複作成しないことを確認する。
     public function test_user_cannot_create_duplicate_review_like_records(): void
     {
         $user = User::factory()->create();
@@ -57,6 +60,7 @@ class ReviewLikeTest extends TestCase
         ]);
     }
 
+    // 書籍詳細にレビューごとのいいね数を表示することを確認する。
     public function test_book_show_displays_like_count_for_each_review(): void
     {
         $book = Book::factory()->create();
@@ -68,6 +72,7 @@ class ReviewLikeTest extends TestCase
             ->assertSee('いいね (2)');
     }
 
+    // ゲストのレビューいいね操作を拒否することを確認する。
     public function test_guest_is_redirected_to_login_when_liking_a_review(): void
     {
         $review = Review::factory()->create();
