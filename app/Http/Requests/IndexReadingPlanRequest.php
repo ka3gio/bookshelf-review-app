@@ -29,10 +29,9 @@ class IndexReadingPlanRequest extends FormRequest
                 'nullable',
                 'integer',
                 Rule::in(
-                    array_map(
-                        fn (ReadingPlanStatus $status) => $status->value,
-                        ReadingPlanStatus::cases()
-                    )
+                    collect(ReadingPlanStatus::cases())
+                        ->pluck('value')
+                        ->all()
                 ),
             ],
         ];

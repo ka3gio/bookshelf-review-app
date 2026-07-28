@@ -9,6 +9,11 @@ enum ReadingPlanStatus: int
     case Completed = 3;
     case Expired = 4;
 
+    /**
+     * ステータスの表示名を返す
+     *
+     * @return string ステータスの表示名
+     */
     public function label(): string
     {
         return match ($this) {
@@ -19,6 +24,11 @@ enum ReadingPlanStatus: int
         };
     }
 
+    /**
+     * ステータスに対応するバッジのCSSクラスを返す
+     *
+     * @return string バッジのCSSクラス
+     */
     public function badgeClass(): string
     {
         return match ($this) {

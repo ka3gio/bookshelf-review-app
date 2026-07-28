@@ -10,6 +10,11 @@ use Illuminate\View\View;
 
 class FavoriteController extends Controller
 {
+    /**
+     * ログインユーザーのお気に入り書籍一覧を表示する
+     *
+     * @return View お気に入り書籍一覧画面
+     */
     public function index(): View
     {
         /** @var User $user */
@@ -19,6 +24,13 @@ class FavoriteController extends Controller
         return view('favorites.index', compact('books'));
     }
 
+    /**
+     * 書籍のお気に入り登録状態を切り替える
+     *
+     * @param  Request  $request  リクエスト
+     * @param  Book  $book  対象の書籍
+     * @return RedirectResponse 直前の画面へのリダイレクト
+     */
     public function toggle(Request $request, Book $book): RedirectResponse
     {
         /** @var User $user */

@@ -16,7 +16,10 @@ use Illuminate\View\View;
 class BookController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * 書籍一覧を検索・絞り込み・並び替えて表示する
+     *
+     * @param  IndexBookRequest  $request  バリデーション済みの検索条件
+     * @return View 書籍一覧画面
      */
     public function index(IndexBookRequest $request): View
     {
@@ -70,7 +73,9 @@ class BookController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * 書籍登録画面を表示する
+     *
+     * @return View 書籍登録画面
      */
     public function create(): View
     {
@@ -80,7 +85,10 @@ class BookController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 書籍を登録する
+     *
+     * @param  StoreBookRequest  $request  バリデーション済みのリクエスト
+     * @return RedirectResponse 書籍一覧画面へのリダイレクト
      */
     public function store(StoreBookRequest $request): RedirectResponse
     {
@@ -102,7 +110,10 @@ class BookController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * 書籍の詳細を表示する
+     *
+     * @param  string  $id  書籍ID
+     * @return View 書籍詳細画面
      */
     public function show(string $id): View
     {
@@ -115,7 +126,10 @@ class BookController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * 書籍編集画面を表示する
+     *
+     * @param  string  $id  書籍ID
+     * @return View 書籍編集画面
      */
     public function edit(string $id): View
     {
@@ -127,7 +141,11 @@ class BookController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * 書籍情報を更新する
+     *
+     * @param  UpdateBookRequest  $request  バリデーション済みのリクエスト
+     * @param  string  $id  書籍ID
+     * @return RedirectResponse 書籍詳細画面へのリダイレクト
      */
     public function update(UpdateBookRequest $request, string $id): RedirectResponse
     {
@@ -147,7 +165,10 @@ class BookController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 書籍を削除する
+     *
+     * @param  string  $id  書籍ID
+     * @return RedirectResponse 書籍一覧画面へのリダイレクト
      */
     public function destroy(string $id): RedirectResponse
     {
@@ -159,6 +180,11 @@ class BookController extends Controller
             ->with('success', '書籍を削除しました');
     }
 
+    /**
+     * レビュー評価に基づく書籍ランキングを表示する
+     *
+     * @return View 書籍ランキング画面
+     */
     public function ranking(): View
     {
         $rankedBooks = Book::has('reviews')

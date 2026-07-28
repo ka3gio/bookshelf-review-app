@@ -11,7 +11,9 @@ use Illuminate\View\View;
 class GenreController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * ジャンル一覧を表示する
+     *
+     * @return View ジャンル一覧画面
      */
     public function index(): View
     {
@@ -21,7 +23,9 @@ class GenreController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * ジャンル登録画面を表示する
+     *
+     * @return View ジャンル登録画面
      */
     public function create(): View
     {
@@ -29,7 +33,10 @@ class GenreController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * ジャンルを登録する
+     *
+     * @param  StoreGenreRequest  $request  バリデーション済みのリクエスト
+     * @return RedirectResponse ジャンル一覧画面へのリダイレクト
      */
     public function store(StoreGenreRequest $request): RedirectResponse
     {
@@ -40,7 +47,10 @@ class GenreController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * ジャンルの詳細を表示する
+     *
+     * @param  string  $id  ジャンルID
+     * @return View ジャンル詳細画面
      */
     public function show(string $id): View
     {
@@ -51,7 +61,10 @@ class GenreController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * ジャンル編集画面を表示する
+     *
+     * @param  string  $id  ジャンルID
+     * @return View ジャンル編集画面
      */
     public function edit(string $id): View
     {
@@ -61,7 +74,11 @@ class GenreController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * ジャンル情報を更新する
+     *
+     * @param  UpdateGenreRequest  $request  バリデーション済みのリクエスト
+     * @param  string  $id  ジャンルID
+     * @return RedirectResponse ジャンル一覧画面へのリダイレクト
      */
     public function update(UpdateGenreRequest $request, string $id): RedirectResponse
     {
@@ -74,7 +91,10 @@ class GenreController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * ジャンルを削除する
+     *
+     * @param  string  $id  ジャンルID
+     * @return RedirectResponse ジャンル一覧画面へのリダイレクト
      */
     public function destroy(string $id): RedirectResponse
     {

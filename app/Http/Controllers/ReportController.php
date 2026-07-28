@@ -10,6 +10,11 @@ use Illuminate\View\View;
 
 class ReportController extends Controller
 {
+    /**
+     * ログインユーザーの読書レポートを集計して表示する
+     *
+     * @return View 読書レポート画面
+     */
     public function index(): View
     {
         /** @var User $user */

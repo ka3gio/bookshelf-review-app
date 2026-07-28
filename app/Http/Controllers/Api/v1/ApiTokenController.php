@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Hash;
 
 class ApiTokenController extends Controller
 {
+    /**
+     * 認証情報を確認してAPIトークンを発行する
+     *
+     * @param  StoreApiTokenRequest  $request  バリデーション済みの認証情報
+     * @return JsonResponse 発行したトークンまたは認証エラー
+     */
     public function store(StoreApiTokenRequest $request): JsonResponse
     {
         $validated = $request->validated();

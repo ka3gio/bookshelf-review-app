@@ -15,7 +15,10 @@ use Illuminate\View\View;
 class ReadingPlanController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * ログインユーザーの読書計画一覧を表示する
+     *
+     * @param  IndexReadingPlanRequest  $request  バリデーション済みの絞り込み条件
+     * @return View 読書計画一覧画面
      */
     public function index(IndexReadingPlanRequest $request): View
     {
@@ -37,7 +40,9 @@ class ReadingPlanController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * 読書計画の登録画面を表示する
+     *
+     * @return View 読書計画登録画面
      */
     public function create(): View
     {
@@ -46,6 +51,12 @@ class ReadingPlanController extends Controller
         return view('reading-plans.create', compact('books'));
     }
 
+    /**
+     * 読書計画を登録する
+     *
+     * @param  StoreReadingPlanRequest  $request  バリデーション済みのリクエスト
+     * @return RedirectResponse 読書計画一覧画面へのリダイレクト
+     */
     public function store(StoreReadingPlanRequest $request): RedirectResponse
     {
         /** @var User $user */
@@ -55,6 +66,12 @@ class ReadingPlanController extends Controller
         return redirect()->route('reading-plans.index')->with('success', '読書計画を作成しました');
     }
 
+    /**
+     * 読書計画の編集画面を表示する
+     *
+     * @param  string  $id  読書計画ID
+     * @return View 読書計画編集画面
+     */
     public function edit(string $id): View
     {
         $readingPlan = ReadingPlan::findOrFail($id);
@@ -64,7 +81,11 @@ class ReadingPlanController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * 読書計画を更新する
+     *
+     * @param  UpdateReadingPlanRequest  $request  バリデーション済みのリクエスト
+     * @param  string  $id  読書計画ID
+     * @return RedirectResponse 読書計画一覧画面へのリダイレクト
      */
     public function update(UpdateReadingPlanRequest $request, string $id): RedirectResponse
     {
@@ -83,7 +104,10 @@ class ReadingPlanController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 読書計画を削除する
+     *
+     * @param  string  $id  読書計画ID
+     * @return RedirectResponse 読書計画一覧画面へのリダイレクト
      */
     public function destroy(string $id): RedirectResponse
     {
@@ -94,6 +118,12 @@ class ReadingPlanController extends Controller
         return redirect()->route('reading-plans.index')->with('success', '読書計画を削除しました');
     }
 
+    /**
+     * 読書計画を進行中に変更する
+     *
+     * @param  string  $id  読書計画ID
+     * @return RedirectResponse 読書計画一覧画面へのリダイレクト
+     */
     public function inprogress(string $id): RedirectResponse
     {
         $readingPlan = ReadingPlan::findOrFail($id);
@@ -107,6 +137,12 @@ class ReadingPlanController extends Controller
         return redirect()->route('reading-plans.index')->with('success', "『{$readingPlan->book->title}』を進行中にしました");
     }
 
+    /**
+     * 読書計画を読了済みに変更する
+     *
+     * @param  string  $id  読書計画ID
+     * @return RedirectResponse 読書計画一覧画面へのリダイレクト
+     */
     public function complete(string $id): RedirectResponse
     {
         $readingPlan = ReadingPlan::findOrFail($id);

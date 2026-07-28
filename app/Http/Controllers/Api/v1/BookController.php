@@ -18,6 +18,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class BookController extends Controller
 {
+    /**
+     * 書籍APIに認証ミドルウェアを設定する
+     */
     public function __construct()
     {
         $this->middleware(function (Request $request, Closure $next): Response {
@@ -37,7 +40,10 @@ class BookController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * 書籍一覧を検索・絞り込みしてJSONで返す
+     *
+     * @param  IndexBookRequest  $request  バリデーション済みの検索条件
+     * @return JsonResponse ページネーション済みの書籍一覧
      */
     public function index(IndexBookRequest $request): JsonResponse
     {
@@ -69,7 +75,10 @@ class BookController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * 書籍を登録する
+     *
+     * @param  StoreBookRequest  $request  バリデーション済みのリクエスト
+     * @return JsonResponse 登録した書籍情報
      */
     public function store(StoreBookRequest $request): JsonResponse
     {
@@ -94,7 +103,10 @@ class BookController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * 指定した書籍をJSONで返す
+     *
+     * @param  int  $book  書籍ID
+     * @return JsonResponse 書籍情報またはエラー情報
      */
     public function show(int $book): JsonResponse
     {
@@ -116,7 +128,11 @@ class BookController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * 指定した書籍を更新する
+     *
+     * @param  UpdateBookRequest  $request  バリデーション済みのリクエスト
+     * @param  int  $book  書籍ID
+     * @return JsonResponse 更新した書籍情報またはエラー情報
      */
     public function update(UpdateBookRequest $request, int $book): JsonResponse
     {
@@ -145,7 +161,11 @@ class BookController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 指定した書籍を削除する
+     *
+     * @param  Request  $request  リクエスト
+     * @param  int  $book  書籍ID
+     * @return JsonResponse 空のレスポンスまたはエラー情報
      */
     public function destroy(Request $request, int $book): JsonResponse
     {
@@ -164,6 +184,11 @@ class BookController extends Controller
         return response()->json(null, 204);
     }
 
+    /**
+     * 書籍が見つからない場合のエラーレスポンスを返す
+     *
+     * @return JsonResponse リソース未検出エラー
+     */
     private function bookNotFoundResponse(): JsonResponse
     {
         return response()->json([
@@ -172,6 +197,11 @@ class BookController extends Controller
         ], 404);
     }
 
+    /**
+     * 操作権限がない場合のエラーレスポンスを返す
+     *
+     * @return JsonResponse 権限不足エラー
+     */
     private function forbiddenResponse(): JsonResponse
     {
         return response()->json([

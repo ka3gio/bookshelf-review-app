@@ -26,13 +26,20 @@ class CheckReadingPlanDeadlines extends Command
     protected $description = '読書計画の期限を確認する';
 
     /**
-     * Execute the console command.
+     * 読書計画の期限状態を更新し、対象ユーザーへ通知する
+     *
+     * @return int コマンドの終了コード
      */
     public function handle(): int
     {
         return DB::transaction(fn () => $this->processDeadlines());
     }
 
+    /**
+     * 期限切れへの更新と期限前後の通知処理を実行する
+     *
+     * @return int コマンドの終了コード
+     */
     private function processDeadlines(): int
     {
         $today = CarbonImmutable::today('Asia/Tokyo');
@@ -47,39 +54,40 @@ class CheckReadingPlanDeadlines extends Command
                 'status' => ReadingPlanStatus::Expired->value,
             ]);
 
-        ReadingPlan::query()
-            ->with(['user', 'book'])
-            ->where('status', '!=', ReadingPlanStatus::Completed->value)
-            ->whereDate('target_date', $today->addDays(3))
-            ->chunkById(100, function ($plans): void {
-                foreach ($plans as $plan) {
-                    $this->notifyOnce($plan, 'three_days_before');
-                }
-            });
-
-        ReadingPlan::query()
-            ->with(['user', 'book'])
-            ->where('status', '!=', ReadingPlanStatus::Completed->value)
-            ->whereDate('target_date', $today)
-            ->chunkById(100, function ($plans): void {
-                foreach ($plans as $plan) {
-                    $this->notifyOnce($plan, 'on_due_date');
-                }
-            });
-
-        ReadingPlan::query()
-            ->with(['user', 'book'])
-            ->where('status', '!=', ReadingPlanStatus::Completed->value)
-            ->whereDate('target_date', $today->subDays(3))
-            ->chunkById(100, function ($plans): void {
-                foreach ($plans as $plan) {
-                    $this->notifyOnce($plan, 'three_days_after');
-                }
-            });
+        $this->notifyPlansDueOn($today->addDays(3), 'three_days_before');
+        $this->notifyPlansDueOn($today, 'on_due_date');
+        $this->notifyPlansDueOn($today->subDays(3), 'three_days_after');
 
         return self::SUCCESS;
     }
 
+    /**
+     * 指定した期限日の読書計画へ通知を送信する
+     *
+     * @param  CarbonImmutable  $date  通知対象の期限日
+     * @param  string  $timing  通知タイミング
+     * @return void 戻り値なし
+     */
+    private function notifyPlansDueOn(CarbonImmutable $date, string $timing): void
+    {
+        ReadingPlan::query()
+            ->with(['user', 'book'])
+            ->where('status', '!=', ReadingPlanStatus::Completed->value)
+            ->whereDate('target_date', $date)
+            ->chunkById(100, function ($plans) use ($timing): void {
+                $plans->each(function (ReadingPlan $plan) use ($timing): void {
+                    $this->notifyOnce($plan, $timing);
+                });
+            });
+    }
+
+    /**
+     * 同じ日の重複送信を避けて期限通知を送信する
+     *
+     * @param  ReadingPlan  $plan  通知対象の読書計画
+     * @param  string  $timing  通知タイミング
+     * @return void 戻り値なし
+     */
     private function notifyOnce(ReadingPlan $plan, string $timing): void
     {
         $today = CarbonImmutable::today('Asia/Tokyo');
