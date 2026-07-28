@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Book;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class BookPolicy
 {
@@ -29,7 +28,7 @@ class BookPolicy
      */
     public function create(User $user): bool
     {
-        //
+        return true;
     }
 
     /**
