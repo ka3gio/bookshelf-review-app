@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreReadingPlanRequest extends FormRequest
@@ -17,7 +18,7 @@ class StoreReadingPlanRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -34,7 +35,7 @@ class StoreReadingPlanRequest extends FormRequest
             'book_id.exists' => '書籍が存在しません',
             'target_date.required' => '期日を入力してください',
             'target_date.date' => '期日を正しい形式で入力してください',
-            'target_date.after_or_equal' => '期限日は今日以降の日付を指定してください',
+            'target_date.after_or_equal' => '期日は今日以降の日付を指定してください',
         ];
     }
 }

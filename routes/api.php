@@ -1,9 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\v1\ApiTokenController;
+use App\Http\Controllers\Api\v1\BookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\v1\BookController;
-use App\Http\Controllers\Api\v1\ApiTokenController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,11 +20,12 @@ use App\Http\Controllers\Api\v1\ApiTokenController;
 //     return $request->user();
 // });
 
+Route::prefix('v1')->group(function () {
+    Route::post('/tokens', [ApiTokenController::class, 'store']);
 
-Route::post('/tokens', [ApiTokenController::class, 'store']);
+    Route::apiResource('books', BookController::class)->only(['index', 'show']);
 
-Route::apiResource('books', BookController::class)->only(['index', 'show']);
-
-Route::middleware('auth:sanctum')->group(function () {
-	Route::apiResource('books', BookController::class)->only(['store', 'update', 'destroy']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::apiResource('books', BookController::class)->only(['store', 'update', 'destroy']);
+    });
 });

@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests\Api\v1;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\Api\ApiFormRequest;
+use Illuminate\Contracts\Validation\ValidationRule;
 
-class StoreApiTokenRequest extends FormRequest
+class StoreApiTokenRequest extends ApiFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -17,7 +18,7 @@ class StoreApiTokenRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -34,6 +35,7 @@ class StoreApiTokenRequest extends FormRequest
             'email.string' => 'メールアドレスは文字列である必要があります',
             'email.email' => 'メールアドレスはメール形式で入力してください',
             'password.required' => 'パスワードを入力してください',
+            'password.string' => 'パスワードは文字列である必要があります',
         ];
     }
 }

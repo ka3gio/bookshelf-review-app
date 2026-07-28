@@ -2,66 +2,85 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreGenreRequest;
 use App\Http\Requests\UpdateGenreRequest;
-
 use App\Models\Genre;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class GenreController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * ジャンル一覧を表示する
+     *
+     * @return View ジャンル一覧画面
      */
-    public function index()
+    public function index(): View
     {
         $genres = Genre::withCount('books')->get();
+
         return view('genres.index', compact('genres'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * ジャンル登録画面を表示する
+     *
+     * @return View ジャンル登録画面
      */
-    public function create()
+    public function create(): View
     {
         return view('genres.create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * ジャンルを登録する
+     *
+     * @param  StoreGenreRequest  $request  バリデーション済みのリクエスト
+     * @return RedirectResponse ジャンル一覧画面へのリダイレクト
      */
-    public function store(StoreGenreRequest $request)
+    public function store(StoreGenreRequest $request): RedirectResponse
     {
         $validated = $request->validated();
         Genre::create($validated);
 
         return redirect()->route('genres.index')->with('success', 'ジャンルを登録しました');
-
     }
 
     /**
-     * Display the specified resource.
+     * ジャンルの詳細を表示する
+     *
+     * @param  string  $id  ジャンルID
+     * @return View ジャンル詳細画面
      */
-    public function show(string $id)
+    public function show(string $id): View
     {
         $genre = Genre::findOrFail($id);
-        $books = $genre->books()->paginate(10);
+        $books = $genre->books()->with('genres')->paginate(10);
+
         return view('genres.show', compact('genre', 'books'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * ジャンル編集画面を表示する
+     *
+     * @param  string  $id  ジャンルID
+     * @return View ジャンル編集画面
      */
-    public function edit(string $id)
+    public function edit(string $id): View
     {
         $genre = Genre::findOrFail($id);
+
         return view('genres.edit', compact('genre'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * ジャンル情報を更新する
+     *
+     * @param  UpdateGenreRequest  $request  バリデーション済みのリクエスト
+     * @param  string  $id  ジャンルID
+     * @return RedirectResponse ジャンル一覧画面へのリダイレクト
      */
-    public function update(UpdateGenreRequest $request, string $id)
+    public function update(UpdateGenreRequest $request, string $id): RedirectResponse
     {
         $validated = $request->validated();
 
@@ -72,9 +91,12 @@ class GenreController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * ジャンルを削除する
+     *
+     * @param  string  $id  ジャンルID
+     * @return RedirectResponse ジャンル一覧画面へのリダイレクト
      */
-    public function destroy(string $id)
+    public function destroy(string $id): RedirectResponse
     {
         $genre = Genre::findOrFail($id);
 

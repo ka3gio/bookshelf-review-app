@@ -2,10 +2,24 @@
 
 namespace App\Models;
 
+use App\Enums\ReadingPlanStatus;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Enums\ReadingPlanStatus;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $book_id
+ * @property CarbonInterface $target_date
+ * @property ReadingPlanStatus $status
+ * @property CarbonInterface|null $completed_at
+ * @property CarbonInterface|null $created_at
+ * @property CarbonInterface|null $updated_at
+ * @property-read User $user
+ * @property-read Book $book
+ */
 class ReadingPlan extends Model
 {
     use HasFactory;
@@ -15,7 +29,7 @@ class ReadingPlan extends Model
         'book_id',
         'target_date',
         'status',
-        'completed_at'
+        'completed_at',
     ];
 
     protected $casts = [
@@ -24,12 +38,18 @@ class ReadingPlan extends Model
         'completed_at' => 'date',
     ];
 
-    public function user()
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function book()
+    /**
+     * @return BelongsTo<Book, $this>
+     */
+    public function book(): BelongsTo
     {
         return $this->belongsTo(Book::class);
     }

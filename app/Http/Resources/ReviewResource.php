@@ -20,11 +20,11 @@ class ReviewResource extends JsonResource
                 'user_id' => $this->user_id,
                 'user_name' => $this->user->name,
             ],
-            'book_id' => $this->book_id,
             'rating' => $this->rating,
             'comment' => $this->comment,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'likes_count' => $this->liked_by_users_count,
         ];
     }
 }

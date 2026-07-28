@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\Http;
 
 class GoogleBooksController extends Controller
 {
+    /**
+     * ISBNを使用してGoogle Booksから書籍情報を取得する
+     *
+     * @param  GoogleBooksRequest  $request  バリデーション済みのリクエスト
+     * @return JsonResponse 書籍情報またはエラー情報
+     */
     public function show(GoogleBooksRequest $request): JsonResponse
     {
         $isbn = $request->validated('isbn');

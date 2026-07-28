@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests\Api\v1;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\Api\ApiFormRequest;
+use Illuminate\Contracts\Validation\ValidationRule;
 
-class IndexBookRequest extends FormRequest
+class IndexBookRequest extends ApiFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -17,7 +18,7 @@ class IndexBookRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -32,6 +33,7 @@ class IndexBookRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'keyword.string' => 'キーワードは文字列で入力してください',
             'keyword.max' => 'キーワードは100文字以内で入力して下さい',
             'genre_id.integer' => 'ジャンルIDは整数である必要があります',
             'genre_id.exists' => '指定されたジャンルIDは存在しません',

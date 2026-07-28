@@ -71,11 +71,13 @@
                                                     <button type="submit" class="text-yellow-600 hover:text-yellow-900">進行中にする</button>
                                                 </form>
                                             @endif
-                                            @if($plan->status !== \App\Enums\ReadingPlanStatus::Completed)
+                                            @if($plan->status === \App\Enums\ReadingPlanStatus::InProgress)
                                                 <form action="{{ route('reading-plans.complete', $plan) }}" method="POST" class="inline" novalidate>
                                                     @csrf
                                                     <button type="submit" class="text-green-600 hover:text-green-900">読了する</button>
                                                 </form>
+                                            @endif
+                                            @if($plan->status !== \App\Enums\ReadingPlanStatus::Completed)
                                                 <a href="{{ route('reading-plans.edit', $plan) }}" class="text-indigo-600 hover:text-indigo-900">編集</a>
                                             @endif
                                             <form action="{{ route('reading-plans.destroy', $plan) }}" method="POST" class="inline" onsubmit="return confirm('本当に削除しますか？');" novalidate>

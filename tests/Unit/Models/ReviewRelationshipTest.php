@@ -12,6 +12,7 @@ class ReviewRelationshipTest extends TestCase
 {
     use RefreshDatabase;
 
+    // レビューから投稿ユーザーを取得できることを確認する。
     public function test_review_belongs_to_a_user(): void
     {
         $user = User::factory()->create();
@@ -23,6 +24,7 @@ class ReviewRelationshipTest extends TestCase
         $this->assertTrue($review->user->is($user));
     }
 
+    // レビューから対象書籍を取得できることを確認する。
     public function test_review_belongs_to_a_book(): void
     {
         $book = Book::factory()->create();
@@ -31,6 +33,7 @@ class ReviewRelationshipTest extends TestCase
         $this->assertTrue($review->book->is($book));
     }
 
+    // レビューに複数ユーザーがいいねできることを確認する。
     public function test_review_can_be_liked_by_multiple_users(): void
     {
         $review = Review::factory()->create([

@@ -4,10 +4,10 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\GoogleBooksController;
-use App\Http\Controllers\ReadingPlanController;
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\ReportController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ReadingPlanController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,15 +21,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return redirect()->route('books.index');
-});
+Route::get('/', [BookController::class, 'index']);
 Route::get('/ranking', [BookController::class, 'ranking'])->name('ranking.index');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/', function () {
-        return redirect()->route('books.index');
-    });
     Route::resource('/books', BookController::class)->except(['index', 'show']);
     Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
     Route::get('/books/isbn/{isbn?}', [GoogleBooksController::class, 'show'])->name('books.isbn.show');
@@ -37,8 +32,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('reviews', ReviewController::class)->only(['edit', 'update', 'destroy']);
     Route::post('reviews/{review}/like', [ReviewController::class, 'like'])->name('reviews.like');
 
-    Route::get('/favorite', [FavoriteController::class, 'index'])->name('favorites.index');
-    Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/books/{book}/favorites', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
     Route::resource('genres', GenreController::class);
 

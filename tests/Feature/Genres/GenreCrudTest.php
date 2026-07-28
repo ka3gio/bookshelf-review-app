@@ -8,6 +8,7 @@ use App\Models\User;
 
 class GenreCrudTest extends GenreTestCase
 {
+    // 認証済みユーザーがジャンルを作成できることを確認する。
     public function test_authenticated_user_can_create_a_genre(): void
     {
         $response = $this->actingAs(User::factory()->create())
@@ -17,6 +18,7 @@ class GenreCrudTest extends GenreTestCase
         $this->assertDatabaseHas('genres', ['name' => '小説']);
     }
 
+    // 認証済みユーザーがジャンルを更新できることを確認する。
     public function test_authenticated_user_can_update_a_genre(): void
     {
         $genre = Genre::factory()->create(['name' => '旧ジャンル名']);
@@ -28,6 +30,7 @@ class GenreCrudTest extends GenreTestCase
         $this->assertDatabaseHas('genres', ['id' => $genre->id, 'name' => '新ジャンル名']);
     }
 
+    // 書籍が紐付いていないジャンルを削除できることを確認する。
     public function test_genre_without_books_can_be_deleted(): void
     {
         $genre = Genre::factory()->create();
@@ -39,6 +42,7 @@ class GenreCrudTest extends GenreTestCase
         $this->assertDatabaseMissing('genres', ['id' => $genre->id]);
     }
 
+    // 書籍が紐付いているジャンルを削除できないことを確認する。
     public function test_genre_with_books_cannot_be_deleted(): void
     {
         $genre = Genre::factory()->create();

@@ -7,6 +7,7 @@ use App\Models\Review;
 
 class ReviewDisplayTest extends ReviewTestCase
 {
+    // 書籍詳細に対象書籍のレビューだけを表示することを確認する。
     public function test_book_show_displays_only_reviews_for_that_book(): void
     {
         $book = Book::factory()->create();
