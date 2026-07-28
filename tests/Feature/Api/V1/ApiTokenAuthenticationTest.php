@@ -4,6 +4,7 @@ namespace Tests\Feature\Api\V1;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class ApiTokenAuthenticationTest extends TestCase
@@ -27,34 +28,21 @@ class ApiTokenAuthenticationTest extends TestCase
         $this->assertDatabaseCount('personal_access_tokens', 1);
     }
 
-    // 未登録メールアドレスではAPIトークンを発行できないことを確認する。
-    public function test_api_token_request_returns_unauthorized_for_unknown_email(): void
-    {
-        $this->postJson('/api/v1/tokens', [
-            'email' => 'unknown@example.com',
-            'password' => 'password',
-        ])
-            ->assertStatus(401)
-            ->assertExactJson([
-                'message' => 'メールアドレスまたはパスワードが正しくありません',
-                'error_code' => 'INVALID_CREDENTIALS',
-            ]);
-
-        $this->assertDatabaseCount('personal_access_tokens', 0);
-    }
-
-    // 誤ったパスワードではAPIトークンを発行できないことを確認する。
-    public function test_api_token_request_returns_unauthorized_for_incorrect_password(): void
-    {
+    // 不正な認証情報ではAPIトークンを発行できないことを確認する。
+    #[DataProvider('invalidCredentialCases')]
+    public function test_api_token_request_returns_unauthorized_for_invalid_credentials(
+        ?string $email,
+        string $password
+    ): void {
         $user = User::factory()->create();
 
         $this->postJson('/api/v1/tokens', [
-            'email' => $user->email,
-            'password' => 'incorrect-password',
+            'email' => $email ?? $user->email,
+            'password' => $password,
         ])
             ->assertStatus(401)
             ->assertExactJson([
-                'message' => 'メールアドレスまたはパスワードが正しくありません',
+                'error' => 'メールアドレスまたはパスワードが正しくありません',
                 'error_code' => 'INVALID_CREDENTIALS',
             ]);
 
@@ -71,7 +59,7 @@ class ApiTokenAuthenticationTest extends TestCase
             ->assertUnauthorized()
             ->assertHeader('content-type', 'application/json')
             ->assertExactJson([
-                'message' => 'メールアドレスまたはパスワードが正しくありません',
+                'error' => 'メールアドレスまたはパスワードが正しくありません',
                 'error_code' => 'INVALID_CREDENTIALS',
             ]);
 
@@ -83,51 +71,44 @@ class ApiTokenAuthenticationTest extends TestCase
     {
         $this->postJson('/api/v1/tokens', [])
             ->assertStatus(422)
-            ->assertJsonStructure([
-                'message',
-                'error_code',
+            ->assertExactJson([
+                'error' => '入力内容に誤りがあります',
+                'error_code' => 'VALIDATION_ERROR',
                 'errors' => [
-                    'email',
-                    'password',
+                    'email' => ['メールアドレスを入力してください'],
+                    'password' => ['パスワードを入力してください'],
                 ],
-            ])
-            ->assertJsonPath('message', '入力内容に誤りがあります。')
-            ->assertJsonPath('error_code', 'VALIDATION_ERROR')
-            ->assertJsonPath('errors.email.0', 'メールアドレスを入力してください')
-            ->assertJsonPath('errors.password.0', 'パスワードを入力してください')
-            ->assertJsonValidationErrors(['email', 'password']);
-    }
-
-    // 未認証ユーザーが保護されたAPIを利用できないことを確認する。
-    public function test_guest_cannot_access_a_protected_api_endpoint(): void
-    {
-        $this->postJson('/api/v1/books', [])
-            ->assertStatus(401)
-            ->assertExactJson([
-                'message' => '認証が必要です。',
-                'error_code' => 'AUTHENTICATION_REQUIRED',
             ]);
     }
 
-    // 未認証ユーザーが保護された書籍更新APIを利用できないことを確認する。
-    public function test_guest_cannot_update_a_book_through_the_api(): void
-    {
-        $this->putJson('/api/v1/books/999999', [])
+    // 未認証ユーザーが保護された書籍APIを利用できないことを確認する。
+    #[DataProvider('protectedBookEndpointCases')]
+    public function test_guest_cannot_access_protected_book_endpoints(
+        string $method,
+        string $uri
+    ): void {
+        $this->json($method, $uri)
             ->assertUnauthorized()
             ->assertExactJson([
-                'message' => '認証が必要です。',
+                'error' => '認証が必要です',
                 'error_code' => 'AUTHENTICATION_REQUIRED',
             ]);
     }
 
-    // 未認証ユーザーが保護された書籍削除APIを利用できないことを確認する。
-    public function test_guest_cannot_delete_a_book_through_the_api(): void
+    public static function invalidCredentialCases(): array
     {
-        $this->deleteJson('/api/v1/books/999999')
-            ->assertUnauthorized()
-            ->assertExactJson([
-                'message' => '認証が必要です。',
-                'error_code' => 'AUTHENTICATION_REQUIRED',
-            ]);
+        return [
+            'unknown_email' => ['unknown@example.com', 'password'],
+            'incorrect_password' => [null, 'incorrect-password'],
+        ];
+    }
+
+    public static function protectedBookEndpointCases(): array
+    {
+        return [
+            'store' => ['POST', '/api/v1/books'],
+            'update' => ['PUT', '/api/v1/books/999999'],
+            'destroy' => ['DELETE', '/api/v1/books/999999'],
+        ];
     }
 }

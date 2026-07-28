@@ -129,4 +129,31 @@ class BookUpdateTest extends BookTestCase
             'image_url' => $payload['image_url'],
         ]);
     }
+
+    // 書籍更新で重複ジャンルIDと存在しないジャンルIDを拒否することを確認する。
+    public function test_book_update_validates_genre_ids(): void
+    {
+        $owner = User::factory()->create();
+        $genre = Genre::factory()->create();
+        $book = Book::factory()->create(['user_id' => $owner->id]);
+
+        $this->actingAs($owner)
+            ->put(route('books.update', $book), $this->bookData([
+                $genre->id,
+                $genre->id,
+            ], [
+                'isbn' => $book->isbn,
+            ]))
+            ->assertSessionHasErrors([
+                'genres.0' => '同じジャンルを重複して指定できません',
+            ]);
+
+        $this->actingAs($owner)
+            ->put(route('books.update', $book), $this->bookData([PHP_INT_MAX], [
+                'isbn' => $book->isbn,
+            ]))
+            ->assertSessionHasErrors([
+                'genres.0' => '指定されたジャンルは存在しません',
+            ]);
+    }
 }

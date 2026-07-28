@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Api\v1;
 
+use App\Http\Requests\Api\ApiFormRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 
-class IndexBookRequest extends FormRequest
+class IndexBookRequest extends ApiFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

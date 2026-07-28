@@ -3,8 +3,6 @@
 ユーザーが書籍を登録・閲覧し、レビューやお気に入りを共有できる書籍レビューアプリです。
 書籍のジャンル分類、レビューへのいいね、平均評価ランキング、読書計画、読書状況のレポートなど、読書を継続するための機能を提供します。
 
-また、外部アプリケーションから書籍情報を操作できる REST API を備えています。書籍の取得は認証なしで利用でき、登録・更新・削除には Laravel Sanctum の API トークン認証が必要です。
-
 ## 作成者
 
 金沢 光汰
@@ -16,14 +14,11 @@
 - MySQL 8.4
 - Nginx
 - Docker / Docker Compose / Laravel Sail
-- Vite 5
-- Tailwind CSS 3.4
-- Alpine.js 3
-- Laravel Fortify（Web 認証）
+- Vite / Tailwind CSS 3.4
+- Laravel Fortify（認証）
 - Laravel Sanctum（API トークン認証）
 - Google Books API
 - phpMyAdmin
-- PHPUnit 10
 
 ## ER図
 
@@ -48,8 +43,8 @@ erDiagram
         bigint_unsigned user_id FK
         varchar_255 title
         varchar_100 author
-        varchar_13 isbn
-        date published_date
+        varchar_13 isbn UK "nullable"
+        date published_date "nullable"
         varchar_1000 description
         varchar_255 image_url
         timestamp created_at
@@ -58,7 +53,7 @@ erDiagram
 
     genres {
         bigint_unsigned id PK
-        varchar_255 name UK
+        varchar_100 name UK
         timestamp created_at
         timestamp updated_at
     }
@@ -151,11 +146,7 @@ erDiagram
 
 ## 開発環境URL
 
-| サービス | URL |
-|---|---|
-| BookShelf | [http://localhost](http://localhost) |
-| phpMyAdmin | [http://localhost:8080](http://localhost:8080) |
-| Vite | [http://localhost:5173](http://localhost:5173) |
+[http://localhost](http://localhost)
 
 ## 動作環境
 
@@ -169,7 +160,7 @@ erDiagram
 1. **リポジトリをクローン**
 
     ```bash
-    git clone git@github.com:ka3gio/bookshelf-review-app.git
+    git clone https://github.com/ka3gio/bookshelf-review-app.git
     cd bookshelf-review-app
     ```
 
@@ -237,31 +228,22 @@ erDiagram
 
 6. **データベースのマイグレーションと初期データ投入**
 
-    ```bash
-    sail artisan migrate --seed
-    ```
-
-    既存のテーブルとデータを削除して作り直す場合は、次のコマンドを使用します。
+    以下のコマンドでテーブルを作成し、ダミーデータを投入します。
 
     ```bash
     sail artisan migrate:fresh --seed
     ```
 
-7. **フロントエンド依存パッケージのインストール**
+7. **フロントエンドのビルド**
 
     ```bash
     sail npm install
-    ```
-
-8. **Vite 開発サーバーの起動**
-
-    ```bash
     sail npm run dev
     ```
 
-    開発中は、このコマンドを起動したままにしてください。
+    `npm run dev` は開発中は起動したままにしてください。
 
-9. **アプリケーションへのアクセス**
+8. **アプリケーションへのアクセス**
 
     ブラウザで [http://localhost](http://localhost) にアクセスします。
 
@@ -269,13 +251,13 @@ erDiagram
 
 シーディング実行後は、以下のいずれかのユーザーでログインできます。パスワードはすべて `password` です。
 
-| ユーザー名 | メールアドレス |
-|---|---|
-| 山田太郎 | yamada@example.com |
-| 鈴木花子 | suzuki@example.com |
-| 田中一郎 | tanaka@example.com |
-| 佐藤美咲 | sato@example.com |
-| 高橋健太 | takahashi@example.com |
+| ユーザー名 | メールアドレス        |
+| ---------- | --------------------- |
+| 山田太郎   | yamada@example.com    |
+| 鈴木花子   | suzuki@example.com    |
+| 田中一郎   | tanaka@example.com    |
+| 佐藤美咲   | sato@example.com      |
+| 高橋健太   | takahashi@example.com |
 
 ## リマインダー通知
 
@@ -297,10 +279,10 @@ sail artisan app:check-reading-plan-deadlines
 sail artisan test
 ```
 
-Laravel Pint でコードスタイルを確認する場合:
+カバレッジ付きで実行する場合:
 
 ```bash
-sail bin pint --test
+sail artisan test --coverage
 ```
 
 ## 機能一覧
@@ -325,14 +307,14 @@ sail bin pint --test
 
 すべてのエンドポイントは `/api/v1` プレフィックス配下に定義されています。
 
-| HTTPメソッド | URI | 認証 | 概要 |
-|---|---|---|---|
-| POST | `/api/v1/tokens` | 不要 | メールアドレスとパスワードから API トークンを発行 |
-| GET | `/api/v1/books` | 不要 | 書籍一覧を取得（検索・ジャンル絞り込み・ページネーション対応） |
-| GET | `/api/v1/books/{book}` | 不要 | 書籍詳細を取得 |
-| POST | `/api/v1/books` | Sanctum | 書籍を新規登録 |
-| PUT / PATCH | `/api/v1/books/{book}` | Sanctum | 所有する書籍を更新 |
-| DELETE | `/api/v1/books/{book}` | Sanctum | 所有する書籍を削除 |
+| HTTPメソッド | URI                    | 認証    | 概要                                                           |
+| ------------ | ---------------------- | ------- | -------------------------------------------------------------- |
+| POST         | `/api/v1/tokens`       | 不要    | メールアドレスとパスワードから API トークンを発行              |
+| GET          | `/api/v1/books`        | 不要    | 書籍一覧を取得（検索・ジャンル絞り込み・ページネーション対応） |
+| GET          | `/api/v1/books/{book}` | 不要    | 書籍詳細を取得                                                 |
+| POST         | `/api/v1/books`        | Sanctum | 書籍を新規登録                                                 |
+| PUT / PATCH  | `/api/v1/books/{book}` | Sanctum | 所有する書籍を更新                                             |
+| DELETE       | `/api/v1/books/{book}` | Sanctum | 所有する書籍を削除                                             |
 
 ### APIトークンの発行
 
@@ -354,18 +336,9 @@ Accept: application/json
 Content-Type: application/json
 ```
 
-### 書籍一覧APIの検索パラメータ
+## 仕様変更・追加事項
 
-| パラメータ | 型 | 必須 | 概要 |
-|---|---|---|---|
-| `keyword` | string | 任意 | タイトルまたは著者名の部分一致検索 |
-| `genre_id` | integer | 任意 | ジャンル ID による絞り込み |
-| `page` | integer | 任意 | ページ番号（初期値: 1） |
-| `per_page` | integer | 任意 | 1 ページの件数（初期値: 20、最大: 100） |
+設計書に記載されていない変更・追加仕様を以下に記載します。
 
-実行例:
-
-```bash
-curl "http://localhost/api/v1/books?keyword=Laravel&genre_id=3&per_page=20" \
-    -H "Accept: application/json"
-```
+- 書籍一覧においてレビュー無い場合、星および評価は表示しないようにしました。
+- 書籍計画一覧において計画を未着手から進行中にするため、「進行中にする」リンクを追加しました。

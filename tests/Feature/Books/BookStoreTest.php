@@ -129,4 +129,26 @@ class BookStoreTest extends BookTestCase
             ->post(route('books.store'), $this->bookData([$genre->id], $overrides))
             ->assertSessionHasErrors([$field => $message]);
     }
+
+    // 書籍登録で重複ジャンルIDと存在しないジャンルIDを拒否することを確認する。
+    public function test_book_store_validates_genre_ids(): void
+    {
+        $user = User::factory()->create();
+        $genre = Genre::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('books.store'), $this->bookData([
+                $genre->id,
+                $genre->id,
+            ]))
+            ->assertSessionHasErrors([
+                'genres.0' => '同じジャンルを重複して指定できません',
+            ]);
+
+        $this->actingAs($user)
+            ->post(route('books.store'), $this->bookData([PHP_INT_MAX]))
+            ->assertSessionHasErrors([
+                'genres.0' => '指定されたジャンルは存在しません',
+            ]);
+    }
 }

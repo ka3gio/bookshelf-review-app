@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('books', function (Blueprint $table) {
-            $table->string('isbn')->nullable()->change();
+            $table->string('isbn', 13)->nullable()->change();
             $table->date('published_date')->nullable()->change();
         });
     }
@@ -17,7 +17,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('books', function (Blueprint $table) {
-            $table->string('isbn')->nullable(false)->change();
+            $table->string('isbn', 13)->nullable(false)->change();
             $table->date('published_date')->nullable(false)->change();
         });
     }

@@ -10,6 +10,7 @@ use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class BookController extends Controller
@@ -87,8 +88,15 @@ class BookController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $book = $user->books()->create($validated);
-        $book->genres()->attach($validated['genres']);
+        $genreIds = $validated['genres'];
+        unset($validated['genres']);
+
+        $book = DB::transaction(function () use ($user, $validated, $genreIds): Book {
+            $book = $user->books()->create($validated);
+            $book->genres()->attach($genreIds);
+
+            return $book;
+        });
 
         return redirect()->route('books.show', $book)->with('success', '書籍を登録しました');
     }
@@ -126,8 +134,13 @@ class BookController extends Controller
         $book = Book::findOrFail($id);
         $this->authorize('update', $book);
         $validated = $request->validated();
-        $book->update($validated);
-        $book->genres()->sync($validated['genres']);
+        $genreIds = $validated['genres'];
+        unset($validated['genres']);
+
+        DB::transaction(function () use ($book, $validated, $genreIds): void {
+            $book->update($validated);
+            $book->genres()->sync($genreIds);
+        });
 
         return redirect()->route('books.show', $book)
             ->with('success', '書籍を更新しました');

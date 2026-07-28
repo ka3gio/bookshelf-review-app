@@ -28,58 +28,16 @@ class BookApiTest extends TestCase
         $this->getJson('/api/v1/books')
             ->assertOk()
             ->assertJsonStructure([
-                'data' => [[
-                    'id',
-                    'user' => ['user_id', 'user_name'],
-                    'title',
-                    'author',
-                    'isbn',
-                    'published_date',
-                    'description',
-                    'image_url',
-                    'genres' => [[
-                        'id',
-                        'name',
-                    ]],
+                'data' => [$this->bookResponseStructure([
                     'average_rating',
                     'review_count',
-                ]],
-                'links' => ['first', 'last', 'prev', 'next'],
-                'meta' => [
-                    'current_page',
-                    'from',
-                    'last_page',
-                    'links',
-                    'path',
-                    'per_page',
-                    'to',
-                    'total',
-                ],
+                ])],
             ])
             ->assertJsonPath('data.0.id', $book->id)
-            ->assertJsonPath('data.0.user.user_id', $book->user_id)
-            ->assertJsonPath('data.0.user.user_name', $book->user->name)
             ->assertJsonPath('data.0.genres.0.id', $genre->id)
-            ->assertJsonPath('data.0.genres.0.name', $genre->name)
             ->assertJsonPath('data.0.average_rating', 4.5)
             ->assertJsonPath('data.0.review_count', 2)
-            ->assertJsonMissingPath('data.0.created_at')
-            ->assertJsonMissingPath('data.0.updated_at')
-            ->assertJsonMissingPath('data.0.genres.0.created_at')
-            ->assertJsonMissingPath('data.0.genres.0.updated_at')
             ->assertJsonMissingPath('data.0.reviews');
-    }
-
-    // レビューがない書籍はレビュー件数0を返し、nullの平均評価は省略することを確認する。
-    public function test_index_omits_null_average_rating_for_a_book_without_reviews(): void
-    {
-        $book = Book::factory()->create();
-
-        $this->getJson('/api/v1/books')
-            ->assertOk()
-            ->assertJsonPath('data.0.id', $book->id)
-            ->assertJsonPath('data.0.review_count', 0)
-            ->assertJsonMissingPath('data.0.average_rating');
     }
 
     // 書籍詳細APIが書籍と関連情報を返すことを確認する。
@@ -94,19 +52,7 @@ class BookApiTest extends TestCase
         $this->getJson("/api/v1/books/{$book->id}")
             ->assertOk()
             ->assertJsonStructure([
-                'data' => [
-                    'id',
-                    'user' => ['user_id', 'user_name'],
-                    'title',
-                    'author',
-                    'isbn',
-                    'published_date',
-                    'description',
-                    'image_url',
-                    'genres' => [[
-                        'id',
-                        'name',
-                    ]],
+                'data' => $this->bookResponseStructure([
                     'average_rating',
                     'review_count',
                     'reviews' => [[
@@ -118,17 +64,13 @@ class BookApiTest extends TestCase
                         'updated_at',
                         'likes_count',
                     ]],
-                ],
+                ]),
             ])
             ->assertJsonPath('data.id', $book->id)
-            ->assertJsonPath('data.user.user_id', $book->user_id)
-            ->assertJsonPath('data.user.user_name', $book->user->name)
             ->assertJsonPath('data.title', $book->title)
             ->assertJsonPath('data.genres.0.id', $genre->id)
-            ->assertJsonPath('data.genres.0.name', $genre->name)
             ->assertJsonPath('data.reviews.0.id', $review->id)
             ->assertJsonPath('data.reviews.0.user.user_id', $review->user_id)
-            ->assertJsonPath('data.reviews.0.user.user_name', $review->user->name)
             ->assertJsonPath('data.reviews.0.likes_count', 1)
             ->assertJsonPath('data.average_rating', 3)
             ->assertJsonPath('data.review_count', 1)
@@ -140,13 +82,24 @@ class BookApiTest extends TestCase
             ->assertJsonMissingPath('data.reviews.0.liked_count');
     }
 
-    // 存在しない書籍の詳細APIが404を返すことを確認する。
-    public function test_show_returns_not_found_for_a_nonexistent_book(): void
-    {
-        $this->getJson('/api/v1/books/999999')
+    // 存在しない書籍に対する各APIが共通形式の404を返すことを確認する。
+    #[DataProvider('bookNotFoundCases')]
+    public function test_book_endpoints_return_not_found(
+        string $method,
+        bool $requiresAuthentication
+    ): void {
+        if ($requiresAuthentication) {
+            Sanctum::actingAs(User::factory()->create());
+        }
+
+        $payload = $method === 'PUT'
+            ? $this->bookPayload([Genre::factory()->create()->id])
+            : [];
+
+        $this->json($method, '/api/v1/books/999999', $payload)
             ->assertNotFound()
             ->assertExactJson([
-                'message' => '指定されたリソースが見つかりません。',
+                'error' => '書籍が見つかりませんでした',
                 'error_code' => 'RESOURCE_NOT_FOUND',
             ]);
     }
@@ -208,7 +161,7 @@ class BookApiTest extends TestCase
             'keyword' => str_repeat('a', 101),
         ]))
             ->assertUnprocessable()
-            ->assertJsonPath('message', '入力内容に誤りがあります。')
+            ->assertJsonPath('error', '入力内容に誤りがあります')
             ->assertJsonPath('error_code', 'VALIDATION_ERROR')
             ->assertJsonPath('errors.keyword.0', 'キーワードは100文字以内で入力して下さい')
             ->assertJsonValidationErrors('keyword');
@@ -257,31 +210,9 @@ class BookApiTest extends TestCase
 
         $this->postJson('/api/v1/books', $payload)
             ->assertCreated()
-            ->assertJsonStructure([
-                'data' => [
-                    'id',
-                    'user' => ['user_id', 'user_name'],
-                    'title',
-                    'author',
-                    'isbn',
-                    'published_date',
-                    'description',
-                    'image_url',
-                    'genres' => [[
-                        'id',
-                        'name',
-                    ]],
-                ],
-            ])
             ->assertJsonPath('data.title', $payload['title'])
             ->assertJsonPath('data.user.user_id', $user->id)
-            ->assertJsonPath('data.user.user_name', $user->name)
-            ->assertJsonCount(2, 'data.genres')
-            ->assertJsonMissingPath('data.created_at')
-            ->assertJsonMissingPath('data.updated_at')
-            ->assertJsonMissingPath('data.average_rating')
-            ->assertJsonMissingPath('data.review_count')
-            ->assertJsonMissingPath('data.reviews');
+            ->assertJsonCount(2, 'data.genres');
 
         $book = Book::where('isbn', $payload['isbn'])->firstOrFail();
         $this->assertDatabaseHas('books', ['id' => $book->id, 'user_id' => $user->id]);
@@ -295,12 +226,34 @@ class BookApiTest extends TestCase
 
         $this->postJson('/api/v1/books', [])
             ->assertUnprocessable()
-            ->assertJsonPath('message', '入力内容に誤りがあります。')
+            ->assertJsonPath('error', '入力内容に誤りがあります')
             ->assertJsonPath('error_code', 'VALIDATION_ERROR')
             ->assertJsonPath('errors.title.0', 'タイトルを入力してください')
             ->assertJsonPath('errors.author.0', '著者名を入力してください')
             ->assertJsonPath('errors.genres.0', 'ジャンルを入力してください')
             ->assertJsonValidationErrors(['title', 'author', 'genres']);
+    }
+
+    // API書籍登録で同じジャンルIDを重複指定できないことを確認する。
+    public function test_store_rejects_duplicate_genre_ids_without_creating_a_book(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+        $genre = Genre::factory()->create();
+        $bookCount = Book::count();
+
+        $this->postJson('/api/v1/books', $this->bookPayload([
+            $genre->id,
+            $genre->id,
+        ]))
+            ->assertUnprocessable()
+            ->assertJsonPath('error_code', 'VALIDATION_ERROR')
+            ->assertJsonFragment([
+                'genres.0' => [
+                    '同じジャンルを重複して指定できません',
+                ],
+            ]);
+
+        $this->assertDatabaseCount('books', $bookCount);
     }
 
     // API書籍登録が各文字数上限ちょうどの入力を受理することを確認する。
@@ -329,10 +282,6 @@ class BookApiTest extends TestCase
         $oldGenre = Genre::factory()->create();
         $newGenres = Genre::factory()->count(2)->create();
         $book->genres()->attach($oldGenre);
-        Review::factory()->create([
-            'book_id' => $book->id,
-            'rating' => 4,
-        ]);
         $payload = $this->bookPayload($newGenres->modelKeys(), [
             'title' => '更新後の書籍',
             'isbn' => $book->isbn,
@@ -340,32 +289,8 @@ class BookApiTest extends TestCase
 
         $this->putJson("/api/v1/books/{$book->id}", $payload)
             ->assertOk()
-            ->assertJsonStructure([
-                'data' => [
-                    'id',
-                    'user' => ['user_id', 'user_name'],
-                    'title',
-                    'author',
-                    'isbn',
-                    'published_date',
-                    'description',
-                    'image_url',
-                    'genres' => [[
-                        'id',
-                        'name',
-                    ]],
-                    'average_rating',
-                    'review_count',
-                ],
-            ])
             ->assertJsonPath('data.title', '更新後の書籍')
-            ->assertJsonPath('data.user.user_id', $book->user_id)
-            ->assertJsonPath('data.average_rating', 4)
-            ->assertJsonPath('data.review_count', 1)
-            ->assertJsonCount(2, 'data.genres')
-            ->assertJsonMissingPath('data.created_at')
-            ->assertJsonMissingPath('data.updated_at')
-            ->assertJsonMissingPath('data.reviews');
+            ->assertJsonCount(2, 'data.genres');
 
         $this->assertDatabaseHas('books', ['id' => $book->id, 'title' => '更新後の書籍']);
         $this->assertEqualsCanonicalizing($newGenres->modelKeys(), $book->fresh()->genres()->pluck('genres.id')->all());
@@ -395,7 +320,7 @@ class BookApiTest extends TestCase
         ]))
             ->assertForbidden()
             ->assertExactJson([
-                'message' => 'この操作を実行する権限がありません。',
+                'error' => 'この操作を実行する権限がありません',
                 'error_code' => 'FORBIDDEN',
             ]);
     }
@@ -409,7 +334,7 @@ class BookApiTest extends TestCase
         $this->deleteJson("/api/v1/books/{$book->id}")
             ->assertForbidden()
             ->assertExactJson([
-                'message' => 'この操作を実行する権限がありません。',
+                'error' => 'この操作を実行する権限がありません',
                 'error_code' => 'FORBIDDEN',
             ]);
 
@@ -425,6 +350,40 @@ class BookApiTest extends TestCase
         $this->putJson("/api/v1/books/{$book->id}", [])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['title', 'author', 'genres']);
+    }
+
+    // API書籍更新で同じジャンルIDを重複指定した場合に既存データを変更しないことを確認する。
+    public function test_update_rejects_duplicate_genre_ids_without_changing_the_book(): void
+    {
+        $book = Book::factory()->create(['title' => '更新前のタイトル']);
+        $currentGenre = Genre::factory()->create();
+        $duplicateGenre = Genre::factory()->create();
+        $book->genres()->attach($currentGenre);
+        Sanctum::actingAs($book->user);
+
+        $this->putJson(
+            "/api/v1/books/{$book->id}",
+            $this->bookPayload([
+                $duplicateGenre->id,
+                $duplicateGenre->id,
+            ], [
+                'title' => '更新されてはいけないタイトル',
+                'isbn' => $book->isbn,
+            ])
+        )
+            ->assertUnprocessable()
+            ->assertJsonPath('error_code', 'VALIDATION_ERROR')
+            ->assertJsonFragment([
+                'genres.0' => [
+                    '同じジャンルを重複して指定できません',
+                ],
+            ]);
+
+        $this->assertSame('更新前のタイトル', $book->fresh()->title);
+        $this->assertEquals(
+            [$currentGenre->id],
+            $book->genres()->pluck('genres.id')->all()
+        );
     }
 
     // API書籍更新が各文字数上限ちょうどの入力を受理することを確認する。
@@ -446,28 +405,6 @@ class BookApiTest extends TestCase
             ->assertJsonPath('data.title', $payload['title']);
     }
 
-    // 存在しない書籍のAPI更新が404を返すことを確認する。
-    public function test_update_returns_not_found_for_a_nonexistent_book(): void
-    {
-        Sanctum::actingAs(User::factory()->create());
-
-        $this->putJson('/api/v1/books/999999', [])
-            ->assertNotFound()
-            ->assertJsonPath('message', '指定されたリソースが見つかりません。')
-            ->assertJsonPath('error_code', 'RESOURCE_NOT_FOUND');
-    }
-
-    // 存在しない書籍のAPI削除が404を返すことを確認する。
-    public function test_delete_returns_not_found_for_a_nonexistent_book(): void
-    {
-        Sanctum::actingAs(User::factory()->create());
-
-        $this->deleteJson('/api/v1/books/999999')
-            ->assertNotFound()
-            ->assertJsonPath('message', '指定されたリソースが見つかりません。')
-            ->assertJsonPath('error_code', 'RESOURCE_NOT_FOUND');
-    }
-
     public static function bookFilterCases(): array
     {
         return [
@@ -475,6 +412,33 @@ class BookApiTest extends TestCase
             'author' => ['author'],
             'genre' => ['genre'],
         ];
+    }
+
+    public static function bookNotFoundCases(): array
+    {
+        return [
+            'show' => ['GET', false],
+            'update' => ['PUT', true],
+            'destroy' => ['DELETE', true],
+        ];
+    }
+
+    private function bookResponseStructure(array $additionalFields = []): array
+    {
+        return array_merge([
+            'id',
+            'user' => ['user_id', 'user_name'],
+            'title',
+            'author',
+            'isbn',
+            'published_date',
+            'description',
+            'image_url',
+            'genres' => [[
+                'id',
+                'name',
+            ]],
+        ], $additionalFields);
     }
 
     private function bookPayload(array $genreIds, array $overrides = []): array

@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Api\v1;
 
+use App\Http\Requests\Api\ApiFormRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 
-class StoreBookRequest extends FormRequest
+class StoreBookRequest extends ApiFormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -30,7 +30,7 @@ class StoreBookRequest extends FormRequest
             'description' => 'nullable|string|max:1000',
             'image_url' => 'nullable|url|max:255',
             'genres' => 'required|array',
-            'genres.*' => 'integer|exists:genres,id',
+            'genres.*' => 'integer|distinct|exists:genres,id',
         ];
     }
 
@@ -54,6 +54,7 @@ class StoreBookRequest extends FormRequest
             'genres.required' => 'ジャンルを入力してください',
             'genres.array' => 'ジャンルは配列で入力してください',
             'genres.*.integer' => 'ジャンルIDは整数で入力してください',
+            'genres.*.distinct' => '同じジャンルを重複して指定できません',
             'genres.*.exists' => '指定されたジャンルは存在しません',
         ];
     }

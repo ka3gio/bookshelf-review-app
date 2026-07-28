@@ -164,9 +164,9 @@ class ReadingPlanAccessTest extends ReadingPlanTestCase
     public static function invalidStatusCases(): array
     {
         return [
-            '文字列' => ['invalid'],
-            '定義外の数値' => [99],
-            'ゼロ' => [0],
+            'string' => ['invalid'],
+            'out_of_range_number' => [99],
+            'zero' => [0],
         ];
     }
 }

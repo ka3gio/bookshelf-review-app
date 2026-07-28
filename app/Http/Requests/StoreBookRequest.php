@@ -30,7 +30,7 @@ class StoreBookRequest extends FormRequest
             'description' => 'nullable|string|max:1000',
             'image_url' => 'nullable|url|max:255',
             'genres' => 'required|array',
-            'genres.*' => 'integer|exists:genres,id',
+            'genres.*' => 'integer|distinct|exists:genres,id',
         ];
     }
 
@@ -52,7 +52,8 @@ class StoreBookRequest extends FormRequest
             'image_url.url' => '画像リンクをURLで入力してください',
             'image_url.max' => '画像リンクが長すぎます',
             'genres.required' => 'ジャンルを選択して下さい',
-            'genres.*.exits' => '指定されたジャンルは存在しません',
+            'genres.*.distinct' => '同じジャンルを重複して指定できません',
+            'genres.*.exists' => '指定されたジャンルは存在しません',
         ];
     }
 }

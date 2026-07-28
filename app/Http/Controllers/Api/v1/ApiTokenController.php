@@ -21,7 +21,7 @@ class ApiTokenController extends Controller
             ! Hash::check($validated['password'], $user->password)
         ) {
             return response()->json([
-                'message' => 'メールアドレスまたはパスワードが正しくありません',
+                'error' => 'メールアドレスまたはパスワードが正しくありません',
                 'error_code' => 'INVALID_CREDENTIALS',
             ], 401);
         }
